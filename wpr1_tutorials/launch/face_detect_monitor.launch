@@ -1,0 +1,11 @@
+<launch>
+  
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/face_detect.rviz" />
+
+  <param name="use_gui" value="$(arg gui)"/>
+  <param name="/use_sim_time" value="false"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>

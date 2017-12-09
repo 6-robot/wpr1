@@ -1,0 +1,11 @@
+<launch>
+
+  <!--- Run WPR1 normal -->
+  <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
+
+    <!-- Run wpr1_dock node -->
+  <node name="wpr1_dock_server" pkg="wpr1_behaviors" type="wpr1_dock_server"  output="screen">
+    <param name="start" type="bool" value="true"/> 
+  </node>
+
+</launch>

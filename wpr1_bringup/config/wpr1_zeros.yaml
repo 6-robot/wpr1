@@ -1,0 +1,12 @@
+zeros:
+  torso_to_upperarm: 1.57
+  upperarm_to_forearm: -0.7
+  mani_palm_finger: 0.1
+
+  #Desk
+  #kinect_height: 1.27
+  #kinect_pitch: -0.84
+
+  #Follow
+  kinect_pitch: -0.1745
+  kinect_height: 1.0

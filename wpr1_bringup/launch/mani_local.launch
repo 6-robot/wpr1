@@ -1,0 +1,16 @@
+<launch>
+
+  <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_bringup)/rviz/urdf.rviz" />
+
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <param name="use_gui" value="$(arg gui)"/>
+
+  <node pkg="wpr1_bringup" type="wpr1_manipulator" name="wpr1_manipulator" output="screen">
+        <param name="serial_port" type="string" value="/dev/wpr1_mani"/> 
+  </node>
+    
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  
+</launch>

@@ -1,0 +1,30 @@
+<launch>
+  <master auto="start"/>
+
+  <!--- Run WPR1 Minimal -->
+  <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
+
+  <!-- Run the map server -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find wpr1_tutorials)/maps/map.yaml"/>
+
+  <!--- Run AMCL -->
+  <include file="$(find wpr1_tutorials)/nav_lidar/amcl_omni.launch" />
+
+  <!--- Run move base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base"  output="screen">
+    <rosparam file="$(find wpr1_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find wpr1_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find wpr1_tutorials)/nav_lidar/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find wpr1_tutorials)/nav_lidar/global_costmap_params.yaml" command="load" />
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" /> 
+    <param name="use_dijkstra" value="true"/>
+    <param name="base_local_planner" value="wpr1_local_planner/Wpr1LocalPlanner" />
+    <param name= "controller_frequency" value="30" type="double"/>
+  </node>
+
+  <!-- RViz -->
+  <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/nav.rviz" />
+
+</launch>

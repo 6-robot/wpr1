@@ -1,0 +1,10 @@
+<launch>
+  <master auto="start"/>
+
+  <!-- RViz -->
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/10_home.rviz" />
+  <param name="use_gui" value="$(arg gui)"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>

@@ -1,0 +1,11 @@
+<launch>
+  
+  <!--- Run WPR1 Minimal -->
+  <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
+
+  <!--- Run Gmapping -->
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+    <param name="base_frame" value="base_footprint"/>
+  </node>
+
+</launch>

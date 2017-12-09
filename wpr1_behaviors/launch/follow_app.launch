@@ -1,0 +1,11 @@
+<launch>
+
+  <!--- Run WPR1 normal -->
+  <include file="$(find wpr1_bringup)/launch/normal.launch" />
+
+    <!-- Run wpr1_follow node -->
+  <node name="wpr1_follow_server" pkg="wpr1_behaviors" type="wpr1_follow_server"  output="screen">
+    <param name="start" type="bool" value="true"/> 
+  </node>
+
+</launch>

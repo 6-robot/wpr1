@@ -1,0 +1,12 @@
+<launch>
+
+  <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  
+  <!--- Run urg node -->
+  <node name="urg_node" pkg="urg_node" type="urg_node" output="screen">
+    <param name="ip_address" type="string" value="192.168.0.10"/> 
+  </node>
+
+</launch>

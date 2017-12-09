@@ -1,0 +1,8 @@
+# udev rule for wpr1
+#
+#KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE:="0777", SYMLINK+="ftdi"
+#udevadm info -a /dev/ttyUSB0 |  grep 'KERNELS'
+KERNEL=="ttyUSB*", KERNELS=="4-1", MODE:="0777", SYMLINK+="wpr1_imu"
+KERNEL=="ttyUSB*", KERNELS=="5-1", MODE:="0777", SYMLINK+="wpr1_base"
+KERNEL=="ttyUSB*", KERNELS=="5-2", MODE:="0777", SYMLINK+="wpr1_mani"
+

@@ -1,0 +1,9 @@
+<launch>
+  
+  <!--- Run WPR1 Behaviors Servers -->
+  <include file="$(find wpr1_behaviors)/launch/all_app.launch" />
+
+  <!-- Run client -->
+  <node pkg="wpr1_tutorials" type="wpr1_dock_client" name="wpr1_dock_client" output="screen"/>
+
+</launch>

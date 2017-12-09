@@ -1,0 +1,9 @@
+<launch>
+  
+  <!--- Run WPR1 Core -->
+  <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
+
+  <!--- Run imu demo -->
+  <node name="wpr1_imu_demo" pkg="wpr1_tutorials" type="wpr1_imu_demo"  output="screen"/>
+
+</launch>

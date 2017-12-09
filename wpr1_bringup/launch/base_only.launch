@@ -1,0 +1,12 @@
+<launch>
+
+  <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+  <!-- Run wpr1 core -->
+  <node pkg="wpr1_bringup" type="wpr1_core" name="wpr1_core" output="screen">
+    <param name="serial_port" type="string" value="/dev/wpr1_base"/> 
+  </node>
+
+</launch>
