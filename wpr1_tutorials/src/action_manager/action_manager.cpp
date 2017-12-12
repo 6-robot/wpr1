@@ -236,7 +236,7 @@ bool CActionManager::Main()
             rosSpeak.data = strToSpeak;
             spk_pub.publish(rosSpeak);
             strToSpeak = "";
-            printf("[ActMgr] %d - sleep %d\n",nCurActIndex,arAct[nCurActIndex].nDuration*1000*1000);
+            printf("[ActMgr] %d - sleep %.1f\n",nCurActIndex,arAct[nCurActIndex].nDuration*1000*1000);
             usleep(arAct[nCurActIndex].nDuration*1000*1000);
             printf("[ActMgr] %d - wakeup\n",nCurActIndex);
             nCurActIndex ++;
