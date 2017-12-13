@@ -879,17 +879,7 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh_param("~");
     nh_param.param<std::string>("topic", pc_topic, "/kinect2/sd/points");
-    bool bActive = false;
-    nh_param.param<bool>("start", bActive, false);
-    if(bActive == true)
-    {
-        ctrl_msg.position[1] = -1.57;
-        ctrl_msg.position[2] = -0.7;
-        ctrl_msg.position[3] = 0;
-        joint_ctrl_pub.publish(ctrl_msg);
-        VelCmd(0,0,0);
-        nStep = STEP_FIND_PLANE;
-    }
+   
 
     ros::NodeHandle nh;
     ros::Subscriber pc_sub = nh.subscribe(pc_topic, 10 , ProcCloudCB);
@@ -923,6 +913,18 @@ int main(int argc, char **argv)
     ctrl_msg.velocity[2] = 1500;
     ctrl_msg.velocity[3] = 1500;
     ctrl_msg.velocity[4] = 1500;
+
+    bool bActive = false;
+    nh_param.param<bool>("start", bActive, false);
+    if(bActive == true)
+    {
+        ctrl_msg.position[1] = -1.57;
+        ctrl_msg.position[2] = -0.7;
+        ctrl_msg.position[3] = 0;
+        joint_ctrl_pub.publish(ctrl_msg);
+        VelCmd(0,0,0);
+        nStep = STEP_FIND_PLANE;
+    }
 
     ros::Rate r(30);
     while(nh.ok())
