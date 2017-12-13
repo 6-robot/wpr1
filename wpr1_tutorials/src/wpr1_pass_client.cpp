@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "wpr1_pass_client");  //程序初始化
 
     ros::NodeHandle n;
-    behaviors_pub = n.advertise<std_msgs::String>("wpr1_behaviors", 30);
+    behaviors_pub = n.advertise<std_msgs::String>("/wpr1/behaviors", 30);
     ros::Subscriber res_sub = n.subscribe("/wpr1/pass_result", 30, PassResultCB);
 
     ROS_WARN("[main] wpr1_pass_client");

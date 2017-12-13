@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "wpr1_dock_client");
 
     ros::NodeHandle n;
-    behaviors_pub = n.advertise<std_msgs::String>("wpr1_behaviors", 30);
+    behaviors_pub = n.advertise<std_msgs::String>("/wpr1/behaviors", 30);
     ros::Subscriber res_sub = n.subscribe("/wpr1/dock_result", 30, DockResultCB);
 
     ROS_WARN("[main] wpr1_dock_client");

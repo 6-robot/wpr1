@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 
     clientIAT = n.serviceClient<xfyun_waterplus::IATSwitch>("xfyun_waterplus/IATSwitch");   //连接语音识别开关服务
 
-    behaviors_pub = n.advertise<std_msgs::String>("wpr1_behaviors", 30);
+    behaviors_pub = n.advertise<std_msgs::String>("/wpr1/behaviors", 30);
 
     ROS_WARN("[main] wpr1_follow_client");
     ros::Rate r(1);         //while函数的循环周期,这里为1Hz
