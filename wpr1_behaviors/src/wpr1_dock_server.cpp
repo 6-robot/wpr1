@@ -197,7 +197,7 @@ int main(int argc, char** argv)
     ctrl_msg.position[1] = -1.57;
     ctrl_msg.position[2] = -0.7;
     ctrl_msg.position[3] = 0;
-    ctrl_msg.position[4] = 7000;
+    ctrl_msg.position[4] = 15000;
     ctrl_msg.velocity[0] = 1500;
     ctrl_msg.velocity[1] = 1500;
     ctrl_msg.velocity[2] = 1500;
@@ -249,9 +249,9 @@ int main(int argc, char** argv)
                         nDock_Angle -= 360;
                     }
                     float fVel_Y = cDock.nFace_x * -0.005;
-                    fVel_Y = VelLimit(fVel_Y,-0.2,0.2);
+                    fVel_Y = VelLimit(fVel_Y,-0.1,0.1);
                     float fVel_X = cDock.nFace_y * 0.005;
-                    fVel_X = VelLimit(fVel_X,-0.2,0.2);
+                    fVel_X = VelLimit(fVel_X,-0.1,0.1);
                     float fVelTurn = nDock_Angle * -(3.14/180) * 0.5;
                     fVelTurn = VelLimit(fVelTurn,-0.3,0.3);
                     //ROS_WARN("[dock] lx=%.2f ly=%.2f az=%.2f",fVel_X, fVel_Y, fVelTurn);
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
                 float fVel_Y = cDock.nDock_X * -0.0005;
                 fVel_Y = VelLimit(fVel_Y,-0.05,0.05);
                 float fVel_X = cDock.nDock_Y * 0.005;
-                fVel_X = VelLimit(fVel_X,-0.2,0.2);
+                fVel_X = VelLimit(fVel_X,-0.1,0.1);
                 float fVelTurn = nDock_Angle * -(3.14/180) * 0.5;
                 fVelTurn = VelLimit(fVelTurn,-0.3,0.3);
                 //ROS_WARN("[dock] lx=%.2f ly=%.2f az=%.2f",fVel_X, fVel_Y, fVelTurn);

@@ -63,6 +63,7 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
 #include <sound_play/SoundRequest.h>
+#include <geometry_msgs/Pose2D.h>
 #include "highgui.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -71,13 +72,16 @@
 #include <vector>
 #include "obj_track.h"
 
+// 抓取参数调节（单位：米）
+static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
+
 #define STEP_WAIT           0
 #define STEP_FIND_PLANE     1
 #define STEP_PLANE_HEIGHT   2
 #define STEP_PLANE_DIST     3
 #define STEP_FIND_OBJ       4
-#define STEP_OBJ_Y          5
-#define STEP_OBJ_X          6
+#define STEP_OBJ_DIST       5
 #define STEP_HAND_UP        7
 #define STEP_FORWARD        8
 #define STEP_GRAB           9
@@ -110,11 +114,22 @@ ros::Publisher segmented_plane;
 ros::Publisher segmented_objects;
 ros::Publisher masking;
 ros::Publisher color;
-static sensor_msgs::JointState ctrl_msg;
+static sensor_msgs::JointState mani_ctrl_msg;
 static std_msgs::String result_msg;
+
+static ros::Publisher ctrl_pub;
+static std_msgs::String ctrl_msg;
+static geometry_msgs::Pose2D pose_diff;
 
 static CObjTrack obj_track;
 cv::Mat rgb_image;
+
+static float fObjGrabX = 0;
+static float fObjGrabY = 0;
+static float fObjGrabZ = 0;
+static float fMoveTargetX = 0;
+static float fMoveTargetY = 0;
+static bool nPlaneDistMode = 1;
 
 typedef struct stBoxMarker
 {
@@ -284,8 +299,8 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
             // Redundant check.
             if (hull.getDimension() == 2)
             {
-                segmented_plane.publish(plane); //在RVIZ里显示平面
-                if(nStep == STEP_FIND_OBJ /*|| nStep == STEP_OBJ_X || nStep == STEP_OBJ_Y8*/)
+                segmented_plane.publish(plane); //在RViz里显示平面
+                if(nStep == STEP_FIND_OBJ )
                 {
                     pcl::PointCloud<pcl::PointXYZRGB>::Ptr objects(new pcl::PointCloud<pcl::PointXYZRGB>);
                     // Prism object.(用于分割出棱柱模型内部的点集)
@@ -437,6 +452,8 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     if(nStep == STEP_FIND_PLANE)  //(点云处理算法在上面)
     {
         VelCmd(0,0,0);
+        ctrl_msg.data = "pose_diff reset";
+        ctrl_pub.publish(ctrl_msg);
         if(fabs(fPlaneHeight - fLastPlaneHeight) < 0.05)
         {
             nPlaneHeightCounter ++;
@@ -447,11 +464,13 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
         }
         fLastPlaneHeight = fPlaneHeight;
         ROS_WARN("[1_FIND_PLANE] z= %.2f xm= %.2f y=(%.2f , %.2f) counter= %d" ,fPlaneHeight,boxPlane.xMin,boxPlane.yMin,boxPlane.yMax,nPlaneHeightCounter);
-        if(nPlaneHeightCounter > 10)
+        if(nPlaneHeightCounter > 3)
         {
             nPlaneHeightCounter = 0;
             nTimeDelayCounter = 0;
             nStep = STEP_PLANE_HEIGHT;
+            fMoveTargetX = boxPlane.xMin - 0.7; //与桌面的距离
+            fMoveTargetY = 0;
         }
         result_msg.data = "find plane";
         result_pub.publish(result_msg);
@@ -470,22 +489,22 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
 			{
 				fTorsoVal = 0.35;
 			}
-            ctrl_msg.position[0] = fTorsoVal;
-            joint_ctrl_pub.publish(ctrl_msg);
+            mani_ctrl_msg.position[0] = fTorsoVal;
+            joint_ctrl_pub.publish(mani_ctrl_msg);
             ROS_WARN("[2_PLANE_HEIGHT] fTorsoVal = %.2f " ,fTorsoVal);
             result_msg.data = "plane height";
             result_pub.publish(result_msg);
         }
 
         nTimeDelayCounter ++;
-        if(nTimeDelayCounter > 90)
+        if(nTimeDelayCounter > 20)
         {
             nStep = STEP_PLANE_DIST;
         }
 
     }
     //3、前后运动控制到平面的距离
-    if(nStep == STEP_PLANE_DIST)
+    if(nStep == STEP_PLANE_DIST && nPlaneDistMode == 1)
     {
         float fMinDist = 100;
         for (int i = 0; i < cloud_source_ptr->points.size(); i++) 
@@ -529,152 +548,76 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     if(nStep == STEP_FIND_OBJ)  //(点云处理算法在上面)
     {
         VelCmd(0,0,0);
+        ctrl_msg.data = "pose_diff reset";
+        ctrl_pub.publish(ctrl_msg);
         if(nObjDetectCounter > 3)
         {
             nObjDetectCounter = 0;
             //把目标物品的坐标赋值到锁定对象里
-            obj_track.obj_x = boxLastObject.xMin;
-            obj_track.obj_y = (boxLastObject.yMin+boxLastObject.yMax)/2;
-            obj_track.obj_z = boxLastObject.zMax;
-            nStep = STEP_OBJ_X;
+            fObjGrabX = boxLastObject.xMin;
+            fObjGrabY = (boxLastObject.yMin+boxLastObject.yMax)/2;
+            fObjGrabZ = boxLastObject.zMax;
+            ROS_WARN("[OBJ_TO_GRAB] x = %.2f y= %.2f ,z= %.2f w= %.2f" ,fObjGrabX, fObjGrabY, fObjGrabZ,boxLastObject.yMin - boxLastObject.yMax);
+
+            // 判断一下物品和桌子边缘的距离，如果放得太靠里，放弃抓取以免机器人撞击桌子
+            if(fabs(fObjGrabX - fTargetPlaneDist) > 0.4 )
+            {
+                ROS_WARN("[OBJ_TO_GRAB] Object is hard to reach !!!");
+                nStep = STEP_DONE;
+            }
+            else
+            {
+                fMoveTargetX = fObjGrabX - fTargetGrabX;
+                fMoveTargetY = fObjGrabY - fTargetGrabY + grab_y_offset;
+                ROS_WARN("[MOVE_TARGET] x = %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
+                nStep = STEP_OBJ_DIST;
+            }
         }
 
         result_msg.data = "find objects";
         result_pub.publish(result_msg);
     }
 
-    //5、根据目标物品坐标调节前后距离 
-    if(nStep == STEP_OBJ_X)
-    {
-        int nSize = cloud_source_ptr->points.size();
-        for (int i = 0; i < nSize; i++)
-        {
-            obj_track.pntx[i] = cloud_source_ptr->points[i].x;
-            obj_track.pnty[i] = cloud_source_ptr->points[i].y;
-            obj_track.pntz[i] = cloud_source_ptr->points[i].z;
-        }
-        obj_track.nPointNum = nSize;
-        obj_track.GetObjPosition();
-        float x_diff = obj_track.obj_x - fTargetGrabX;
-        if(fabs(x_diff) < 0.02)
-        {
-            nStep = STEP_OBJ_Y;
-            VelCmd(0,0,0);
-        }
-        else
-        {
-            if(x_diff > 0)
-            {
-                //目标还太远，靠近一些
-                VelCmd(0.05,0,0);
-            }
-            else
-            {
-                //目标还太近，远离一些
-                VelCmd(-0.05,0,0);
-            }
-        }
-        ROS_WARN("[5_STEP_OBJ_X] p_h = %.2f ox= %.2f ,tx= %.2f xd= %.2f" ,obj_track.fPlaneHeight, obj_track.obj_x, fTargetGrabX,x_diff);
-        RemoveBoxes();
-        DrawBox(obj_track.obj_x, obj_track.obj_x + 0.1, obj_track.obj_y-0.05, obj_track.obj_y+0.05, obj_track.fPlaneHeight, obj_track.obj_z, 1, 1, 0);
-
-        result_msg.data = "object x";
-        result_pub.publish(result_msg);
-    }
-    //6、根据目标物品坐标调节左右距离
-    if(nStep == STEP_OBJ_Y)
-    {
-       int nSize = cloud_source_ptr->points.size();
-        for (int i = 0; i < nSize; i++)
-        {
-            obj_track.pntx[i] = cloud_source_ptr->points[i].x;
-            obj_track.pnty[i] = cloud_source_ptr->points[i].y;
-            obj_track.pntz[i] = cloud_source_ptr->points[i].z;
-        }
-        obj_track.nPointNum = nSize;
-        obj_track.GetObjPosition();
-        //obj_track.obj_y = (boxLastObject.yMin+boxLastObject.yMax)/2;
-        float y_diff = obj_track.obj_y - fTargetGrabY;
-        if(fabs(y_diff) < 0.01)
-        {
-            nTimeDelayCounter = 0;
-            nStep = STEP_HAND_UP;
-            VelCmd(0,0,0);
-        }
-        else
-        {
-            if(y_diff > 0)
-            {
-                //目标靠左，左移一些
-                VelCmd(0,0.05,0);
-            }
-            else
-            {
-                //目标靠右，右移一些
-                VelCmd(0,-0.05,0);
-            }
-        }
-        ROS_WARN("[6_STEP_OBJ_Y] p_h = %.2f oy= %.2f ,ty= %.2f (yd= %.2f)" ,obj_track.fPlaneHeight, obj_track.obj_y, fTargetGrabY,y_diff);
-        RemoveBoxes();
-        DrawBox(obj_track.obj_x, obj_track.obj_x + 0.1, obj_track.obj_y-0.05, obj_track.obj_y+0.05, obj_track.fPlaneHeight, obj_track.obj_z, 1, 1, 0);
-
-        result_msg.data = "object y";
-        result_pub.publish(result_msg);
-    }
     //7、抬起手臂
     if(nStep == STEP_HAND_UP)
     {
         if(nTimeDelayCounter == 0)
         {
-            ctrl_msg.position[1] = -0.52;
-            ctrl_msg.position[2] = -0.52;
-            ctrl_msg.position[3] = 0;
-            ctrl_msg.position[4] = 47000;
-            joint_ctrl_pub.publish(ctrl_msg);
-            ROS_WARN("[7_HAND_UP] gripper = %.2f " ,ctrl_msg.position[4]);
+            mani_ctrl_msg.position[1] = -0.52;
+            mani_ctrl_msg.position[2] = -0.52;
+            mani_ctrl_msg.position[3] = 0;
+            mani_ctrl_msg.position[4] = 47000;
+            joint_ctrl_pub.publish(mani_ctrl_msg);
+            ROS_WARN("[7_HAND_UP] gripper = %.2f " ,mani_ctrl_msg.position[4]);
 
             result_msg.data = "hand up";
             result_pub.publish(result_msg);
         }
         nTimeDelayCounter ++;
-        if(nTimeDelayCounter > 150)
+        if(nTimeDelayCounter > 30)
         {
+            fMoveTargetX = fObjGrabX -0.55 + grab_forward_offset;
+            fMoveTargetY = 0;
             nTimeDelayCounter = 0;
             nStep = STEP_FORWARD;
         }
     }
-    //8、前进靠近物品
-    if(nStep == STEP_FORWARD)
-    {
-        ROS_WARN("[8_STEP_FORWARD] nTimeDelayCounter = %d " ,nTimeDelayCounter);
-        nTimeDelayCounter++;
-        VelCmd(0.1,0,0);
-        if(nTimeDelayCounter > 60)
-        {
-            VelCmd(0,0,0);
-            
-            nTimeDelayCounter = 0;
-            nStep = STEP_GRAB;
-        }
-
-        result_msg.data = "forward";
-        result_pub.publish(result_msg);
-    }
+    
     //9、抓取物品
     if(nStep == STEP_GRAB)
     {
         if(nTimeDelayCounter == 0)
         {
-            ctrl_msg.position[4] = 7000;
-            joint_ctrl_pub.publish(ctrl_msg);
-            ROS_WARN("[9_STEP_GRAB] gripper = %.2f " ,ctrl_msg.position[4]);
+            mani_ctrl_msg.position[4] = 25000;
+            joint_ctrl_pub.publish(mani_ctrl_msg);
+            ROS_WARN("[9_STEP_GRAB] gripper = %.2f " ,mani_ctrl_msg.position[4]);
 
             result_msg.data = "grab";
             result_pub.publish(result_msg);
         }
         nTimeDelayCounter++;
         VelCmd(0,0,0);
-        if(nTimeDelayCounter > 120)
+        if(nTimeDelayCounter > 10)
         {
             nTimeDelayCounter = 0;
             nStep = STEP_OBJ_UP;
@@ -685,40 +628,26 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     {
         if(nTimeDelayCounter == 0)
         {
-            ctrl_msg.position[0] += 0.05;
-            joint_ctrl_pub.publish(ctrl_msg);
-            ROS_WARN("[10_STEP_OBJ_UP] fTorsoVal = %.2f " ,ctrl_msg.position[0]);
+            mani_ctrl_msg.position[0] += 0.05;
+            joint_ctrl_pub.publish(mani_ctrl_msg);
+            ROS_WARN("[10_STEP_OBJ_UP] fTorsoVal = %.2f " ,mani_ctrl_msg.position[0]);
 
             result_msg.data = "object up";
             result_pub.publish(result_msg);
         }
         nTimeDelayCounter++;
         VelCmd(0,0,0);
-        if(nTimeDelayCounter > 60)
+        if(nTimeDelayCounter > 10)
         {
+            fMoveTargetX = -(fTargetGrabX-0.4);
+            fMoveTargetY = 0;
+            //ROS_WARN("[STEP_BACKWARD] x= %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
+            
             nTimeDelayCounter = 0;
             nStep = STEP_BACKWARD;
         }
     }
-    //11、带着物品后退
-    if(nStep == STEP_BACKWARD)
-    {
-        ROS_WARN("[11_STEP_BACKWARD] nTimeDelayCounter = %d " ,nTimeDelayCounter);
-        nTimeDelayCounter++;
-        VelCmd(-0.1,0,0);
-        if(nTimeDelayCounter > 70)
-        {
-            nTimeDelayCounter = 0;
-            VelCmd(0,0,0);
-            ctrl_msg.position[1] = -1.57;
-            ctrl_msg.position[2] = -1.57;
-            joint_ctrl_pub.publish(ctrl_msg);
-            nStep = STEP_DONE;
-        }
 
-        result_msg.data = "backward";
-        result_pub.publish(result_msg);
-    }
     //12、抓取任务完毕
     if(nStep == STEP_DONE)
     {
@@ -781,6 +710,13 @@ void DrawBox(float inMinX, float inMaxX, float inMinY, float inMaxY, float inMin
     marker_pub.publish(line_box);
 }
 
+void PoseDiffCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
+{
+    pose_diff.x = msg->x;
+    pose_diff.y = msg->y;
+    pose_diff.theta = msg->theta;
+}
+
 static int nTextNum = 2;
 void DrawText(std::string inText, float inScale, float inX, float inY, float inZ, float inR, float inG, float inB)
 {
@@ -831,12 +767,12 @@ void VelCmd(float inVx , float inVy, float inTz)
 
 void ManiCmd(float inTorso, float inShoulder, float inElbow, float inWrist, float inGripper)
 {
-    ctrl_msg.position[0] = inTorso;
-    ctrl_msg.position[1] = inShoulder;
-    ctrl_msg.position[2] = inElbow;
-    ctrl_msg.position[3] = inWrist;
-    ctrl_msg.position[4] = inGripper;
-    joint_ctrl_pub.publish(ctrl_msg);
+    mani_ctrl_msg.position[0] = inTorso;
+    mani_ctrl_msg.position[1] = inShoulder;
+    mani_ctrl_msg.position[2] = inElbow;
+    mani_ctrl_msg.position[3] = inWrist;
+    mani_ctrl_msg.position[4] = inGripper;
+    joint_ctrl_pub.publish(mani_ctrl_msg);
 }
 
 void BehaviorCB(const std_msgs::String::ConstPtr &msg)
@@ -845,10 +781,10 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
     nFindIndex = msg->data.find("grab start");
     if( nFindIndex >= 0 )
     {
-       ctrl_msg.position[1] = -1.57;
-        ctrl_msg.position[2] = -0.7;
-        ctrl_msg.position[3] = 0;
-        joint_ctrl_pub.publish(ctrl_msg);
+       mani_ctrl_msg.position[1] = -1.57;
+        mani_ctrl_msg.position[2] = -0.7;
+        mani_ctrl_msg.position[3] = 0;
+        joint_ctrl_pub.publish(mani_ctrl_msg);
         VelCmd(0,0,0);
         nStep = STEP_FIND_PLANE;
         ROS_WARN("[grab_start] ");
@@ -894,34 +830,36 @@ int main(int argc, char **argv)
     result_pub = nh.advertise<std_msgs::String>("/wpr1/grab_result", 30);
 
     ros::Subscriber sub_sr = nh.subscribe("/wpr1/behaviors", 30, BehaviorCB);
+    ctrl_pub = nh.advertise<std_msgs::String>("/wpr1/ctrl", 30);
+    ros::Subscriber pose_diff_sub = nh.subscribe("/wpr1/pose_diff", 1, PoseDiffCallback);
 
-    ctrl_msg.name.resize(5);
-    ctrl_msg.position.resize(5);
-    ctrl_msg.velocity.resize(5);
-    ctrl_msg.name[0] = "base_to_torso";
-    ctrl_msg.name[1] = "torso_to_upperarm";
-    ctrl_msg.name[2] = "upperarm_to_forearm";
-    ctrl_msg.name[3] = "forearm_to_palm";
-    ctrl_msg.name[4] = "gripper";
-    ctrl_msg.position[0] = 0;
-    ctrl_msg.position[1] = -1.57;
-    ctrl_msg.position[2] = -0.7;
-    ctrl_msg.position[3] = 0;
-    ctrl_msg.position[4] = 7000;
-    ctrl_msg.velocity[0] = 1500;
-    ctrl_msg.velocity[1] = 1500;
-    ctrl_msg.velocity[2] = 1500;
-    ctrl_msg.velocity[3] = 1500;
-    ctrl_msg.velocity[4] = 1500;
+    mani_ctrl_msg.name.resize(5);
+    mani_ctrl_msg.position.resize(5);
+    mani_ctrl_msg.velocity.resize(5);
+    mani_ctrl_msg.name[0] = "base_to_torso";
+    mani_ctrl_msg.name[1] = "torso_to_upperarm";
+    mani_ctrl_msg.name[2] = "upperarm_to_forearm";
+    mani_ctrl_msg.name[3] = "forearm_to_palm";
+    mani_ctrl_msg.name[4] = "gripper";
+    mani_ctrl_msg.position[0] = 0;
+    mani_ctrl_msg.position[1] = -1.57;
+    mani_ctrl_msg.position[2] = -0.7;
+    mani_ctrl_msg.position[3] = 0;
+    mani_ctrl_msg.position[4] = 25000;
+    mani_ctrl_msg.velocity[0] = 1500;
+    mani_ctrl_msg.velocity[1] = 1500;
+    mani_ctrl_msg.velocity[2] = 1500;
+    mani_ctrl_msg.velocity[3] = 1500;
+    mani_ctrl_msg.velocity[4] = 1500;
 
     bool bActive = false;
     nh_param.param<bool>("start", bActive, false);
     if(bActive == true)
     {
-        ctrl_msg.position[1] = -1.57;
-        ctrl_msg.position[2] = -0.7;
-        ctrl_msg.position[3] = 0;
-        joint_ctrl_pub.publish(ctrl_msg);
+        mani_ctrl_msg.position[1] = -1.57;
+        mani_ctrl_msg.position[2] = -0.7;
+        mani_ctrl_msg.position[3] = 0;
+        joint_ctrl_pub.publish(mani_ctrl_msg);
         VelCmd(0,0,0);
         nStep = STEP_FIND_PLANE;
     }
@@ -929,6 +867,106 @@ int main(int argc, char **argv)
     ros::Rate r(30);
     while(nh.ok())
     {
+        //2、前后运动控制到平面的距离
+        if(nStep == STEP_PLANE_DIST && nPlaneDistMode == 2)
+        {
+            float vx,vy;
+            vx = (fMoveTargetX - pose_diff.x)/2;
+            vy = (fMoveTargetY - pose_diff.y)/2;
+
+            VelCmd(vx,vy,0);
+
+            //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
+
+            if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
+            {
+                VelCmd(0,0,0);
+                ctrl_msg.data = "pose_diff reset";
+                ctrl_pub.publish(ctrl_msg);
+                nStep = STEP_FIND_OBJ;
+            }
+
+            result_msg.data = "plane dist";
+            result_pub.publish(result_msg);
+        }
+    
+        //4、左右平移对准目标物品 
+        if(nStep == STEP_OBJ_DIST)
+        {
+            float vx,vy;
+            vx = (fMoveTargetX - pose_diff.x)/2;
+            vy = (fMoveTargetY - pose_diff.y)/2;
+
+            VelCmd(vx,vy,0);
+            //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
+
+            if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
+            {
+                VelCmd(0,0,0);
+                ctrl_msg.data = "pose_diff reset";
+                ctrl_pub.publish(ctrl_msg);
+                nTimeDelayCounter = 0;
+                nStep = STEP_HAND_UP;
+                //ROS_INFO("STEP_OBJ_DIST -> STEP_HAND_UP");
+            }
+
+            result_msg.data = "object x";
+            result_pub.publish(result_msg);
+        }
+
+         //6、前进靠近物品
+        if(nStep == STEP_FORWARD)
+        {
+            float vx,vy;
+            vx = (fMoveTargetX - pose_diff.x)/2;
+            vy = (fMoveTargetY - pose_diff.y)/2;
+
+            VelCmd(vx,vy,0);
+
+            //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
+
+            if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
+            {
+                VelCmd(0,0,0);
+                ctrl_msg.data = "pose_diff reset";
+                ctrl_pub.publish(ctrl_msg);
+                nStep = STEP_GRAB;
+            }
+
+            result_msg.data = "forward";
+            result_pub.publish(result_msg);
+        }
+
+        //9、带着物品后退
+        if(nStep == STEP_BACKWARD)
+        {
+            //ROS_WARN("[STEP_BACKWARD] nTimeDelayCounter = %d " ,nTimeDelayCounter);
+            //nTimeDelayCounter++;
+            
+            float vx,vy;
+            vx = (fMoveTargetX - pose_diff.x)/2;
+            vy = (fMoveTargetY - pose_diff.y)/2;
+
+            VelCmd(vx,vy,0);
+
+            //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
+
+            if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
+            {
+                VelCmd(0,0,0);
+                ctrl_msg.data = "pose_diff reset";
+                ctrl_pub.publish(ctrl_msg);
+
+                mani_ctrl_msg.position[1] = -1.57;
+                mani_ctrl_msg.position[2] = -1.57;
+                joint_ctrl_pub.publish(mani_ctrl_msg);
+
+                nStep = STEP_DONE;
+            }
+
+            result_msg.data = "backward";
+            result_pub.publish(result_msg);
+        }
         ros::spinOnce();
         r.sleep();
     }

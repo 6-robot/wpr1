@@ -1,6 +1,6 @@
 <launch>
   <arg name="gui" default="true" />
-  <arg name="rvizconfig" default="$(find wpr1_bringup)/rviz/urdf.rviz" />
+  <arg name="rvizconfig" default="$(find wpr1_bringup)/rviz/Kinect_room.rviz" />
 
   <param name="use_gui" value="$(arg gui)"/>
 

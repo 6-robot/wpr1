@@ -41,6 +41,7 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Twist.h>
+#include <std_msgs/String.h>
 #include "WPR1_driver.h"
 #include <math.h>
 
@@ -75,7 +76,21 @@ void IMUCallback(const sensor_msgs::Imu::ConstPtr & imu)
          bFirstYaw = false;
      }
 }
- 
+
+static geometry_msgs::Pose2D pose_diff_msg;
+void CtrlCallback(const std_msgs::String::ConstPtr &msg)
+{
+    int nFindIndex = 0;
+    nFindIndex = msg->data.find("pose_diff reset");
+    if( nFindIndex >= 0 )
+    {
+        pose_diff_msg.x = 0;
+        pose_diff_msg.y = 0;
+        pose_diff_msg.theta = 0;
+        //ROS_WARN("[pose_diff reset]");
+    }
+
+}
 
 static double fKVx = 1.0f/sqrt(3.0f);
 static double fKVy = 2.0f/3.0f;
@@ -137,6 +152,12 @@ int main(int argc, char** argv)
     odom.twist.twist.angular.x = 0;
     odom.twist.twist.angular.y = 0;
     odom.twist.twist.angular.z = 0;
+
+    ros::Subscriber ctrl_sub = n.subscribe("/wpr1/ctrl",10,&CtrlCallback);
+    ros::Publisher pose_diff_pub = n.advertise<geometry_msgs::Pose2D>("/wpr1/pose_diff",1);
+    pose_diff_msg.x = 0;
+    pose_diff_msg.y = 0;
+    pose_diff_msg.theta = 0;
 
     lastPose.x = lastPose.y = lastPose.theta = 0;
     lastVel.linear.x = lastVel.linear.y = lastVel.linear.z = lastVel.angular.x = lastVel.angular.y = lastVel.angular.z = 0;
@@ -218,6 +239,12 @@ int main(int argc, char** argv)
                 lastPose.theta = (fCurYaw - fYawZero);
             }
 
+            double pd_dx = (lastVel.linear.x*cos(pose_diff_msg.theta) - lastVel.linear.y*sin(pose_diff_msg.theta))*fTimeDur;
+            double pd_dy = (lastVel.linear.x*sin(pose_diff_msg.theta) + lastVel.linear.y*cos(pose_diff_msg.theta))*fTimeDur;
+            pose_diff_msg.x += pd_dx;
+            pose_diff_msg.y += pd_dy;
+            pose_diff_msg.theta += (fVz*fTimeDur);
+
             //ROS_INFO("[odom] x=%.2f y=%.2f a=%.2f",lastPose.x,lastPose.y,lastPose.theta);
 
             odom_quat = tf::createQuaternionMsgFromRollPitchYaw(0,0,lastPose.theta);
@@ -264,6 +291,9 @@ int main(int argc, char** argv)
             odom_pub.publish(odom);
             //ROS_INFO("[odom] zero");
         }
+
+        pose_diff_pub.publish(pose_diff_msg);
+        //ROS_INFO("[pose_diff_msg] x= %.2f  y=%.2f  th= %.2f", pose_diff_msg.x,pose_diff_msg.y,pose_diff_msg.theta);
 
         ros::spinOnce();
         r.sleep();

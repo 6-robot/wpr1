@@ -1,0 +1,51 @@
+<launch>
+
+    <!--- Run WPR1 Behaviors Servers -->
+    <include file="$(find wpr1_behaviors)/launch/all_app.launch" />
+
+    <!-- Run the map server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find wpr1_tutorials)/maps/map.yaml"/>
+
+    <!--- Run AMCL -->
+    <include file="$(find wpr1_tutorials)/nav_lidar/amcl_omni.launch" />
+
+    <!--- Run move base -->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base"  output="screen">
+        <rosparam file="$(find wpr1_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find wpr1_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find wpr1_tutorials)/nav_lidar/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find wpr1_tutorials)/nav_lidar/global_costmap_params.yaml" command="load" />
+        <param name="base_global_planner" value="global_planner/GlobalPlanner" /> 
+        <param name="use_dijkstra" value="true"/>
+        <param name="base_local_planner" value="wpr1_local_planner/Wpr1LocalPlanner" />
+        <param name= "controller_frequency" value="30" type="double"/>
+    </node>
+
+
+    <!-- Map tools  -->
+    <node pkg="waterplus_map_tools" type="wp_manager" name="wp_manager" output="screen">
+        <param name="load" type="string" value="/home/robot/waypoints.xml"/> 
+    </node>
+
+    <!-- Run xfyun IAT -->
+    <node pkg="xfyun_waterplus" type="iat_node" name="xfyun_iat_node" output="screen">
+        <param name="cn" type="bool" value="true"/>
+        <param name="start" type="bool" value="true"/>
+    </node>
+    
+    <!-- Run xfyun TTS -->
+    <node pkg="xfyun_waterplus" type="tts_node" name="xfyun_tts_node" /> 
+    <!-- Run sound_play -->
+    <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py"/>
+    <!-- Run script -->
+    <node pkg="wpr1_tutorials" type="home_test" name="home_test" output="screen"/>
+
+
+  <!-- RViz -->
+    <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/10_home.rviz" />
+  <param name="use_gui" value="$(arg gui)"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>

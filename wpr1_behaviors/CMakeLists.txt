@@ -219,8 +219,6 @@ target_link_libraries(wpr1_follow_server
   ${PCL_LIBRARIES}
 )
 
-
-
 add_executable(wpr1_pass_server
   src/wpr1_pass_server.cpp
 )

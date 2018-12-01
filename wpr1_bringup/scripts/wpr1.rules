@@ -2,7 +2,7 @@
 #
 #KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE:="0777", SYMLINK+="ftdi"
 #udevadm info -a /dev/ttyUSB0 |  grep 'KERNELS'
-KERNEL=="ttyUSB*", KERNELS=="4-1", MODE:="0777", SYMLINK+="wpr1_imu"
-KERNEL=="ttyUSB*", KERNELS=="5-1", MODE:="0777", SYMLINK+="wpr1_base"
-KERNEL=="ttyUSB*", KERNELS=="5-2", MODE:="0777", SYMLINK+="wpr1_mani"
+KERNEL=="ttyUSB*", KERNELS=="1-10", MODE:="0777", SYMLINK+="wpr1_imu"
+KERNEL=="ttyUSB*", KERNELS=="1-9", MODE:="0777", SYMLINK+="wpr1_base"
+KERNEL=="ttyUSB*", KERNELS=="1-6", MODE:="0777", SYMLINK+="wpr1_mani"
 

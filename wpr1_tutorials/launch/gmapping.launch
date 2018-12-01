@@ -1,9 +1,17 @@
 <launch>
+   
+  <!--- Run WPR1 Minimal -->
+  <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
 
-  <!-- RViz -->
+  <!--- Run Gmapping -->
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+    <param name="base_frame" value="base_footprint"/>
+  </node>
+
+  <!-- RIVZ -->
   <arg name="gui" default="true" />
-  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/slam.rviz" />
   <param name="use_gui" value="$(arg gui)"/>
+  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/slam.rviz" />
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
   <!-- Joy Node -->
@@ -15,7 +23,7 @@
   <!-- Axes Velcmd -->
   <param name="axis_linear" value="1" type="int"/>
   <param name="axis_angular" value="0" type="int"/>
-  <param name="scale_linear" value="0.2" type="double"/>
+  <param name="scale_linear" value="0.5" type="double"/>
   <param name="scale_angular" value="1" type="double"/>
   <node pkg="wpr1_bringup" type="wpr1_js_velcmd" name="teleop"/>
 

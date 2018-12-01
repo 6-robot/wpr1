@@ -1,7 +1,13 @@
 <launch>
-   <!--- Run WPR1 -->
+
+  <!--- Run WPR1  -->
   <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
 
+  <node pkg="wpr1_behaviors" type="wpr1_grab_server" name="wpr1_grab_server" output="screen">
+    <param name="start" type="bool" value="true"/> 
+  </node>
+
+  <!--- Run Kinect -->
   <!--************************ kinect ************************-->
   <arg name="base_name"         default="kinect2"/>
   <arg name="sensor"            default=""/>
@@ -12,7 +18,7 @@
   <arg name="use_png"           default="false"/>
   <arg name="jpeg_quality"      default="90"/>
   <arg name="png_level"         default="1"/>
-  <arg name="depth_method"      default="cpu"/>
+  <arg name="depth_method"      default="cpu"/><!--- default/cpu -->
   <arg name="depth_device"      default="-1"/>
   <arg name="reg_method"        default="cpu"/>
   <arg name="reg_device"        default="-1"/>
@@ -84,31 +90,23 @@
     <param name="worker_threads"    type="int"    value="$(arg worker_threads)"/>
   </node>
 
-   <!-- hd point cloud (1920 x 1080) -->
-  <node pkg="nodelet" type="nodelet" name="$(arg base_name)_points_xyzrgb_hd" machine="$(arg machine)"
+  <!-- sd point cloud (512 x 424) -->
+  <node pkg="nodelet" type="nodelet" name="$(arg base_name)_points_xyzrgb_sd" machine="$(arg machine)"
         args="load depth_image_proc/point_cloud_xyzrgb $(arg nodelet_manager)" respawn="$(arg respawn)">
-    <remap from="rgb/camera_info"             to="$(arg base_name)/hd/camera_info"/>
-    <remap from="rgb/image_rect_color"        to="$(arg base_name)/hd/image_color_rect"/>
-    <remap from="depth_registered/image_rect" to="$(arg base_name)/hd/image_depth_rect"/>
-    <remap from="depth_registered/points"     to="$(arg base_name)/hd/points"/>
+    <remap from="rgb/camera_info"             to="$(arg base_name)/sd/camera_info"/>
+    <remap from="rgb/image_rect_color"        to="$(arg base_name)/sd/image_color_rect"/>
+    <remap from="depth_registered/image_rect" to="$(arg base_name)/sd/image_depth_rect"/>
+    <remap from="depth_registered/points"     to="$(arg base_name)/sd/points"/>
     <param name="queue_size" type="int" value="$(arg queue_size)"/>
   </node>
   <!--************************ end ************************-->
 
-  <!-- Run xfyun IAT -->
-  <node pkg="xfyun_waterplus" type="iat_node" name="xfyun_iat_node" output="screen">
-      <param name="cn" type="bool" value="false"/>
-      <param name="start" type="bool" value="true"/>
-  </node>
-  <!-- Run xfyun TTS -->
-  <node pkg="xfyun_waterplus" type="tts_node" name="xfyun_tts_node" /> 
-  <!-- Run sound_play -->
-  <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py"/>
-
-  <!-- Run person_recognition -->
-  <arg name="face_cascade_file" default="$(find wpr1_tutorials)/config/haarcascade_frontalface_alt.xml" />
-  <node name="person_recognition" pkg="wpr1_tutorials" type="person_recognition" output="screen">
-    <param name="face_cascade_name" value="$(arg face_cascade_file)"/>
-  </node>
+  <!--- RViz  -->
+  <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_behaviors)/rviz/obj_detect.rviz" />
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <param name="use_gui" value="$(arg gui)"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
 </launch>

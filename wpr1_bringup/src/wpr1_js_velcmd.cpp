@@ -11,6 +11,7 @@ public:
   TeleopJoy();
   float lx;
   float ry;
+  float ly;
   ros::NodeHandle n;
   ros::Subscriber sub;
 
@@ -34,21 +35,23 @@ TeleopJoy::TeleopJoy()
 }
 
 static float kx = 0.2;
-static float ky = 1;
+static float ky = 0.1;
+static float kz = 0.5;
 void TeleopJoy::callBack(const sensor_msgs::Joy::ConstPtr& joy)
 {
 
   ROS_INFO("Joy: [%.2f , %.2f]", lx , ry);
   lx = joy->axes[1];
+  ly = joy->axes[0];
   ry = joy->axes[3];
 
   geometry_msgs::Twist vel_cmd;
   vel_cmd.linear.x = (float)lx*kx;
-  vel_cmd.linear.y = 0;
+  vel_cmd.linear.y = ly*ky;
   vel_cmd.linear.z = 0;
   vel_cmd.angular.x = 0;
   vel_cmd.angular.y = 0;
-  vel_cmd.angular.z = (float)ry*ky;
+  vel_cmd.angular.z = (float)ry*kz;
   velcmd_pub.publish(vel_cmd);
   
 }

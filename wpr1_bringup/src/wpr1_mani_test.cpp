@@ -131,7 +131,7 @@ int main(int argc, char** argv)
                 fJointAngle[3] = -90;
                 fJointAngle[4] = -40;
                 fJointAngle[5] = 10;
-                fJointAngle[6] = 7000;
+                fJointAngle[6] = 15000;
                 nFlag ++;
             }
             else
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
                 fJointAngle[3] = 0;
                 fJointAngle[4] = 0;
                 fJointAngle[5] = 0;
-                fJointAngle[6] = 25000;
+                fJointAngle[6] = 35000;
                 nFlag = 0;
             }
             m_mani.SetJoints(fJointAngle, nJointSpeed);
