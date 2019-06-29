@@ -3,6 +3,9 @@
   <!--- Run WPR1 Minimal -->
   <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
 
+  <node pkg="tf" type="static_transform_publisher" name="odom_to_basefootprint" 
+      args="0.0 0.0 0.0 0 0 0.0 /odom /base_footprint 100" />
+
   <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
     <!-- Frame names -->
     <param name="pub_map_odom_transform" value="true"/>
@@ -28,7 +31,7 @@
     <param name="laser_max_dist" value="5.5" />
     <param name="output_timing" value="false" />
     <param name="pub_map_scanmatch_transform" value="true" />
-    <param name="tf_map_scanmatch_transform_frame_name" value="base_footprint" />
+    <param name="tf_map_scanmatch_transform_frame_name" value="odom" />
 
     <!-- Map update parameters -->
     <param name="update_factor_free" value="0.4"/>
@@ -41,7 +44,7 @@
     <param name="scan_subscriber_queue_size" value="5"/>
     <param name="scan_topic" value="scan"/>
 
-    <remap from="/scanmatcher_frame" to="/base_footprint" />
+    <remap from="/scanmatcher_frame" to="/odom" />
   </node>
 
   <!-- RViz-->
@@ -51,10 +54,10 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
   <!-- Joy Node -->
-  <node respawn="true" pkg="joy" type="joy_node" name="wpr1_joy" >
+  <!--<node respawn="true" pkg="joy" type="joy_node" name="wpr1_joy" >
     <param name="dev" type="string" value="/dev/input/js0" />
     <param name="deadzone" value="0.12" />
-  </node>
+  </node>-->
 
   <!-- Axes Velcmd -->
   <param name="axis_linear" value="1" type="int"/>
