@@ -1,0 +1,21 @@
+<launch>
+  
+  <!--- Run WPR1 Normal -->
+  <include file="$(find wpr1_bringup)/launch/normal.launch" />
+
+  <!--- Run Face Detect -->
+  <arg name="face_cascade_file" default="$(find wpr1_tutorials)/config/haarcascade_frontalface_alt.xml" />
+  <node name="wpr1_face_detect" pkg="wpr1_tutorials" type="wpr1_face_detect" output="screen">
+    <param name="face_cascade_name" value="$(arg face_cascade_file)"/>
+  </node>
+
+  <!--- Run Rviz -->
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_tutorials)/rviz/face_detect.rviz" />
+
+  <param name="use_gui" value="$(arg gui)"/>
+  <param name="/use_sim_time" value="false"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>
