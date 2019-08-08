@@ -4,5 +4,5 @@
 #udevadm info -a /dev/ttyUSB0 |  grep 'KERNELS'
 KERNEL=="ttyUSB*", KERNELS=="1-10", MODE:="0777", SYMLINK+="wpr1_imu"
 KERNEL=="ttyUSB*", KERNELS=="1-9", MODE:="0777", SYMLINK+="wpr1_base"
-KERNEL=="ttyUSB*", KERNELS=="1-6", MODE:="0777", SYMLINK+="wpr1_mani"
+KERNEL=="ttyUSB*", KERNELS=="1-1", MODE:="0777", SYMLINK+="wpr1_mani"
 

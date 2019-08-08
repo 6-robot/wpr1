@@ -399,3 +399,19 @@ add_dependencies(speech_recognition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 target_link_libraries(speech_recognition
   ${catkin_LIBRARIES}
 )
+
+add_executable(sr_cn
+  src/sr_cn.cpp
+)
+add_dependencies(sr_cn ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sr_cn
+  ${catkin_LIBRARIES}
+)
+
+add_executable(wpr1_image_node
+  src/wpr1_image_node.cpp
+)
+add_dependencies(wpr1_image_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wpr1_image_node
+  ${catkin_LIBRARIES}
+)

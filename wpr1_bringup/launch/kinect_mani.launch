@@ -101,4 +101,10 @@
     <param name="queue_size" type="int" value="$(arg queue_size)"/>
   </node>
 
+  <!--- Run RViz -->
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find wpr1_bringup)/rviz/Kinect_room.rviz" />
+  <param name="use_gui" value="$(arg gui)"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
 </launch>

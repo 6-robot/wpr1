@@ -1,0 +1,9 @@
+<launch>
+  
+  <!--- Run WPR1 Bringup-->
+  <include file="$(find wpr1_bringup)/launch/kinect_test.launch" />
+
+  <!-- Run client -->
+  <node pkg="wpr1_tutorials" type="wpr1_image_node" name="wpr1_image_node" output="screen"/>
+
+</launch>

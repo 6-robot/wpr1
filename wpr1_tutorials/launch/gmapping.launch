@@ -1,5 +1,5 @@
 <launch>
-   
+
   <!--- Run WPR1 Minimal -->
   <include file="$(find wpr1_bringup)/launch/base_mani_imu_lidar.launch" />
 
@@ -16,8 +16,8 @@
 
   <!-- Joy Node -->
   <node respawn="true" pkg="joy" type="joy_node" name="wpr1_joy" >
-    <param name="dev" type="string" value="/dev/input/js0" />
-    <param name="deadzone" value="0.12" />
+  <param name="dev" type="string" value="/dev/input/js0" />
+  <param name="deadzone" value="0.12" />
   </node>
 
   <!-- Axes Velcmd -->

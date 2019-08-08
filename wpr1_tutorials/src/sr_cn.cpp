@@ -47,12 +47,9 @@ static int nSpeakCount = 0;
 
 static void Speak(string inStr)
 {
-    sound_play::SoundRequest sp;
-    sp.sound = sound_play::SoundRequest::SAY;
-    sp.command = sound_play::SoundRequest::PLAY_ONCE;
-    sp.volume = 1.0;
-    sp.arg = inStr;
-    spk_pub.publish(sp);
+    std_msgs::String strSpeak;
+	strSpeak.data = inStr;
+    spk_pub.publish(strSpeak);
 }
 
 void KeywordCB(const std_msgs::String::ConstPtr & msg)
@@ -64,27 +61,25 @@ void KeywordCB(const std_msgs::String::ConstPtr & msg)
     }
     string strSpeak;
     int nFindIndex = 0;
-    nFindIndex = msg->data.find("capital of China");
+    nFindIndex = msg->data.find("中国的首都");
     if( nFindIndex >= 0 )
     {
-        strSpeak = "The quetion is " + msg->data;
-        strSpeak += ".The answer is ";
-        strSpeak += "Beijing ";
+        strSpeak = "问： " + msg->data;
+        strSpeak += "。答案是：北京";
         Speak(strSpeak);
         nSpeakCount = 10;
         nState = STATE_SPEAK;
     }
-    nFindIndex = msg->data.find("capital of Japan");
+    nFindIndex = msg->data.find("日本的首都");
     if( nFindIndex >= 0 )
     {
-        strSpeak = "The quetion is " + msg->data;
-        strSpeak += ".The answer is ";
-        strSpeak += "Tokyo ";
+       strSpeak = "问： " + msg->data;
+        strSpeak += "。答案是：东京";
         Speak(strSpeak);
         nSpeakCount = 10;
         nState = STATE_SPEAK;
     }
-    ROS_INFO("[QA] - %s",strSpeak.c_str());
+    printf("[QA] - %s\n",strSpeak.c_str());
 }
 
 int main(int argc, char** argv)
@@ -93,11 +88,11 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n;
     ros::Subscriber sub_sr = n.subscribe("/xfyun/iat", 10, KeywordCB);
-    spk_pub = n.advertise<sound_play::SoundRequest>("/robotsound", 20);
+    spk_pub = n.advertise<std_msgs::String>("/xfyun/tts", 20);
 
     ROS_INFO("[main] speech_recognition");
-    ROS_WARN("[Question 1] What is the capital of China");
-    ROS_WARN("[Question 2] What is the capital of Japan");
+    printf("[Question 1] 中国的首都是哪？\n");
+    printf("[Question 2] 日本的首都是哪？\n");
     ros::Rate r(1);
     while(ros::ok())
     {

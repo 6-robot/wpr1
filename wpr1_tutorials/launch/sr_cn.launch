@@ -1,0 +1,15 @@
+<launch>
+
+    <!--- Run xfyun -->
+    <node pkg="xfyun_waterplus" type="iat_node" name="xfyun_iat_node" output="screen">
+        <param name="cn" type="bool" value="true"/> 
+    </node>
+
+    <!--- Run SR Demo -->
+    <node pkg="wpr1_tutorials" type="sr_cn" name="sr_cn" output="screen"/>
+
+    <!-- Run sound_play -->
+    <node pkg="xfyun_waterplus" type="tts_node" name="xfyun_tts_node" /> 
+    <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py"/>
+
+</launch>

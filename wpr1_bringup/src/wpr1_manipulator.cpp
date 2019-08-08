@@ -113,8 +113,8 @@ int main(int argc, char** argv)
     joint_pos[3] = 0.0f;
     joint_pos[4] = 0.0f;
     joint_pos[5] = 0.0f;
-    joint_pos[6] = 0.94f;    //kinect_height
-    joint_pos[7] = -0.17f;    //kinect_pitch
+    joint_pos[6] = 1.03f;    //kinect_height
+    joint_pos[7] = -0.22f;    //kinect_pitch
 
     int nCount = 100;
     int nFlag = 0;
