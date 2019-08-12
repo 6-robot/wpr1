@@ -306,7 +306,7 @@ int main(int argc, char** argv)
                 //ROS_WARN("[dock] lx=%.2f ly=%.2f az=%.2f",fVel_X, fVel_Y, fVelTurn);
                 VelCmd(fVel_X, fVel_Y, fVelTurn);
 
-                if (nDist < 20)
+                if (nDist < 25)
                 {
                     VelCmd(0, 0, 0);
                     nDelayCount = 0;
