@@ -44,7 +44,9 @@ install(FILES
 
 add_library(wpr1_local_planner
   include/wpr1_local_planner/wpr1_local_planner.h
+  include/wpr1_local_planner/wl_helper.h
   src/wpr1_local_planner.cpp
+  src/wl_helper.cpp
 )
 add_dependencies(wpr1_local_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(wpr1_local_planner
