@@ -415,3 +415,11 @@ add_dependencies(wpr1_image_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 target_link_libraries(wpr1_image_node
   ${catkin_LIBRARIES}
 )
+
+add_executable(wpr1_wp_grab
+  src/wpr1_wp_grab.cpp
+)
+add_dependencies(wpr1_wp_grab ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wpr1_wp_grab
+  ${catkin_LIBRARIES}
+)
