@@ -44,6 +44,7 @@
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl/filters/passthrough.h>
 #include <pcl/surface/convex_hull.h>
 #include <pcl/segmentation/extract_polygonal_prism_data.h>
 #include <pcl/visualization/cloud_viewer.h>
@@ -75,6 +76,7 @@
 // 抓取参数调节（单位：米）
 static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
+static float grab_torso_lift_offset = 0.0f; //机器人上半身升降值的补偿便宜量，单位为米
 
 #define STEP_WAIT           0
 #define STEP_FIND_PLANE     1
@@ -185,9 +187,9 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     {
         pcl::PointXYZRGB p = cloud_src.points[i];
         if(
-            p.x < 1.2 &&
-            p.y > -1.0 &&
-            p.y < 1.0
+            p.x < 1.5 &&
+            p.y > -1.5 &&
+            p.y < 1.5
         )
         {
             new_point_cloud.push_back(p);
@@ -208,11 +210,11 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
         pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
         pcl::SACSegmentation<pcl::PointXYZRGB> segmentation;
         segmentation.setInputCloud(cloud_source_ptr);
-        segmentation.setModelType(pcl::SACMODEL_PLANE);
+        segmentation.setModelType(pcl::SACMODEL_PERPENDICULAR_PLANE);
         segmentation.setMethodType(pcl::SAC_RANSAC);
         segmentation.setDistanceThreshold(0.005);
         segmentation.setOptimizeCoefficients(true);
-        Eigen::Vector3f axis = Eigen::Vector3f(0.0,1.0,0.0);
+        Eigen::Vector3f axis = Eigen::Vector3f(0.0,0.0,1.0);
         segmentation.setAxis(axis);
         segmentation.setEpsAngle(  10.0f * (M_PI/180.0f) );
         pcl::PointIndices::Ptr planeIndices(new pcl::PointIndices);
@@ -483,7 +485,7 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     {
         if(nTimeDelayCounter == 0)
         {
-            float fTorsoVal = fPlaneHeight + 0.64 -1.3;
+            float fTorsoVal = fPlaneHeight + 0.64 - 1.3 + grab_torso_lift_offset;
             if (fTorsoVal < 0)
 			{
 				fTorsoVal = 0;
