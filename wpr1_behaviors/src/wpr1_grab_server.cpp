@@ -76,7 +76,7 @@
 // 抓取参数调节（单位：米）
 static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
-static float grab_torso_lift_offset = 0.0f; //机器人上半身升降值的补偿便宜量，单位为米
+static float grab_torso_lift_offset = 0.0f; //机器人上半身升降值的补偿偏移量
 
 #define STEP_WAIT           0
 #define STEP_FIND_PLANE     1
