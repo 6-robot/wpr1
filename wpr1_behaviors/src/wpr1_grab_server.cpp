@@ -74,9 +74,12 @@
 #include "obj_track.h"
 
 // 抓取参数调节（单位：米）
-static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
-static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
-static float grab_torso_lift_offset = 0.0f; //机器人上半身升降值的补偿偏移量
+static float fTargetPlaneDist = 0.6;        //观察物品前，与桌子之间的距离
+static float grab_torso_lift_offset = 0.0f; //观察物品时，机器人上半身升降值的补偿偏移量
+static float fTargetGrabX = 0.8;            //抬手时，目标物品的x坐标（机器人和物品距离）
+static float fTargetGrabY = 0.05;           //抬手时，目标物品的y坐标（机器人对准物品的左右偏移量）
+static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的补偿偏移量
+static float grab_backward_offset = 0.0f;   //机器人抓取物品后，回退移动的补偿偏移量
 
 #define STEP_WAIT           0
 #define STEP_FIND_PLANE     1
@@ -154,9 +157,6 @@ static float fPlaneHeight = 0;
 static int nPlaneHeightCounter = 0;
 
 static float fPlaneDist = 0;
-static float fTargetPlaneDist = 0.6;    //与桌子之间的目标距离
-static float fTargetGrabX = 0.8;        //抓取时目标物品的x坐标
-static float fTargetGrabY = 0.05;          //抓取时目标物品的y坐标
 
 static std::vector<stBoxMarker> vObj;        
 static stBoxMarker boxLastObject;
@@ -573,7 +573,7 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
             else
             {
                 fMoveTargetX = fObjGrabX - fTargetGrabX;
-                fMoveTargetY = fObjGrabY - fTargetGrabY + grab_y_offset;
+                fMoveTargetY = fObjGrabY - fTargetGrabY;
                 ROS_WARN("[MOVE_TARGET] x = %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
                 nStep = STEP_OBJ_DIST;
             }
@@ -644,7 +644,7 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
         VelCmd(0,0,0);
         if(nTimeDelayCounter > 10)
         {
-            fMoveTargetX = -(fTargetGrabX-0.4);
+            fMoveTargetX = -(fTargetGrabX - 0.4 + grab_backward_offset);
             fMoveTargetY = 0;
             //ROS_WARN("[STEP_BACKWARD] x= %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
             
