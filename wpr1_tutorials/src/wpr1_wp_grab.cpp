@@ -142,6 +142,7 @@ int main(int argc, char** argv)
         {
             // 到达垃圾桶航点，扔垃圾
             ROS_INFO("Arrived at %s!",srvName.response.name.c_str());
+            bPassDone = false;
             std_msgs::String behavior_msg;
             behavior_msg.data = "pass start";
             behaviors_pub.publish(behavior_msg);
@@ -149,6 +150,12 @@ int main(int argc, char** argv)
         else
         {
             continue;
+        }
+
+        // 等待扔垃圾完成
+        while(ros::ok() && bPassDone == false)
+        {
+            ros::spinOnce();
         }
     }
 
