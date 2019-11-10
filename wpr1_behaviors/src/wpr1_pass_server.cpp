@@ -127,7 +127,7 @@ int main(int argc, char** argv)
             ctrl_msg.position[0] = 0.15;
             ctrl_msg.position[1] = -0.52;
             ctrl_msg.position[2] = -0.52;
-            ctrl_msg.position[4] = 7000;
+            ctrl_msg.position[4] = 20000;
             joint_ctrl_pub.publish(ctrl_msg);
             nDelayCount ++;
             if(nDelayCount > 80)
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
             ctrl_msg.position[0] = 0;
             ctrl_msg.position[1] = -1.57;
             ctrl_msg.position[2] = -0.7;
-            ctrl_msg.position[4] = 7000;
+            ctrl_msg.position[4] = 20000;
             joint_ctrl_pub.publish(ctrl_msg);
             nDelayCount ++;
             if(nDelayCount > 80)
