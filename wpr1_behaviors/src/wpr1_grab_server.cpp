@@ -658,6 +658,7 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     {
         result_msg.data = "done";
         result_pub.publish(result_msg);
+        nStep = STEP_WAIT;
     }
 }
 
