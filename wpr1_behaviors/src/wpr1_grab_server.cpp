@@ -135,6 +135,7 @@ static float fObjGrabZ = 0;
 static float fMoveTargetX = 0;
 static float fMoveTargetY = 0;
 static bool nPlaneDistMode = 1;
+static int nForwardCounter = 0;
 
 typedef struct stBoxMarker
 {
@@ -525,6 +526,11 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
         }
         fPlaneDist = fMinDist;
         ROS_WARN("[3_PLANE_DIST] dist= %.2f" ,fPlaneDist);
+        if(fMinDist == 100)
+        {
+            nStep = STEP_DONE;
+            return;
+        }
         float diff = fPlaneDist - fTargetPlaneDist;
         if(fabs(diff) < 0.02)
         {
@@ -649,6 +655,7 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
             //ROS_WARN("[STEP_BACKWARD] x= %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
             
             nTimeDelayCounter = 0;
+            nForwardCounter = 0;
             nStep = STEP_BACKWARD;
         }
     }
@@ -787,7 +794,7 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
     nFindIndex = msg->data.find("grab start");
     if( nFindIndex >= 0 )
     {
-       mani_ctrl_msg.position[1] = -1.57;
+        mani_ctrl_msg.position[1] = -1.57;
         mani_ctrl_msg.position[2] = -0.7;
         mani_ctrl_msg.position[3] = 0;
         joint_ctrl_pub.publish(mani_ctrl_msg);
@@ -924,15 +931,19 @@ int main(int argc, char **argv)
         if(nStep == STEP_FORWARD)
         {
             float vx,vy;
-            vx = (fMoveTargetX - pose_diff.x)/2;
-            vy = (fMoveTargetY - pose_diff.y)/2;
+            vx = 0.01;//(fMoveTargetX - pose_diff.x)/2; //前进的速度
+            vy = 0;//(fMoveTargetY - pose_diff.y)/2;
 
             VelCmd(vx,vy,0);
+            nForwardCounter ++;
+            printf("抓取前进计数 nForwardCounter = %d\n",nForwardCounter);
 
             //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
 
-            if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
+            //if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
+            if(nForwardCounter > 10)    //前进的计数值
             {
+                nForwardCounter = 0;
                 VelCmd(0,0,0);
                 ctrl_msg.data = "pose_diff reset";
                 ctrl_pub.publish(ctrl_msg);

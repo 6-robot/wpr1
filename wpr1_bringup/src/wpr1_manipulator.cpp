@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n_param("~");
     std::string strSerialPort;
-    n_param.param<std::string>("serial_port", strSerialPort, "/dev/ttyUSB0");
+    n_param.param<std::string>("serial_port", strSerialPort, "/dev/wpr1_mani");
     m_mani.Open(strSerialPort.c_str(),115200);
 
     ros::Subscriber joint_ctrl_sub = n.subscribe("/wpr1/joint_ctrl",30,&JointCtrlCallback);
@@ -113,8 +113,8 @@ int main(int argc, char** argv)
     joint_pos[3] = 0.0f;
     joint_pos[4] = 0.0f;
     joint_pos[5] = 0.0f;
-    joint_pos[6] = 1.03f;    //kinect_height
-    joint_pos[7] = -0.22f;    //kinect_pitch
+    joint_pos[6] = 1.00f;    //kinect_height
+    joint_pos[7] = -0.24f;    //kinect_pitch
 
     int nCount = 100;
     int nFlag = 0;

@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n_param("~");
     std::string strSerialPort;
-    n_param.param<std::string>("serial_port", strSerialPort, "/dev/ttyUSB0");
+    n_param.param<std::string>("serial_port", strSerialPort, "/wpr1_base");
     m_wpr1.Open(strSerialPort.c_str(),115200);
 
     sleep(1);
