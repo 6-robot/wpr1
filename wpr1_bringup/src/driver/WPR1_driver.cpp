@@ -20,6 +20,11 @@ CWPR1_driver::CWPR1_driver()
 		arMotorPos[i] = 0;
 		arMotorCurrent[i] = 0;
 	}
+	for (int i = 0; i<5; i++)
+	{
+		m_valData[i] = 0;
+	}
+	m_chIO = 0;
 	nParseCount = 1000;
 }
     
@@ -102,22 +107,27 @@ void CWPR1_driver::m_ParseFrame(unsigned char *inBuf, int inLen)
 		switch (inBuf[4])	//ģ��
 		{
 		case 0x07:		//AD
-			switch (inBuf[5])
+			for (int i = 0; i<5; i++)
 			{
-			case 0x60:
-				for (i = 0; i<8; i++)
-				{
-					m_valData[i] = m_USFromChar(&(inBuf[7 + i * 2]));
-				}
-				break;
-
-			case 0x61:
-				for (i = 0; i<8; i++)
-				{
-					m_valData[i + 8] = m_USFromChar(&(inBuf[7 + i * 2]));
-				}
-				break;
+				m_valData[i] = m_USFromChar(&(inBuf[7 + i * 2]));
 			}
+			m_chIO = inBuf[7 + 5 * 2];
+			// switch (inBuf[5])
+			// {
+			// case 0x60:
+			// 	for (i = 0; i<8; i++)
+			// 	{
+			// 		m_valData[i] = m_USFromChar(&(inBuf[7 + i * 2]));
+			// 	}
+			// 	break;
+
+			// case 0x61:
+			// 	for (i = 0; i<8; i++)
+			// 	{
+			// 		m_valData[i + 8] = m_USFromChar(&(inBuf[7 + i * 2]));
+			// 	}
+			// 	break;
+			// }
 			break;
 		case 0x08:		//Motor
 			for (i=0;i<4;i++)

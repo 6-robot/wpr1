@@ -8,6 +8,7 @@ public:
     ~CWPR1_driver();
     void Parse(unsigned char inData);
 	int m_valData[16];
+	unsigned char m_chIO;
 	void Velocity(float inX, float inY, float inAngular);
 	void SetSixMotorsSpeed(int *inSpeed);
 	int arMotorPos[6];

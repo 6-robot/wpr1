@@ -41,6 +41,7 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Twist.h>
+#include <sensor_msgs/BatteryState.h>
 #include <std_msgs/String.h>
 #include "WPR1_driver.h"
 #include <math.h>
@@ -169,6 +170,9 @@ int main(int argc, char** argv)
     lastPose.x = lastPose.y = lastPose.theta = 0;
     lastVel.linear.x = lastVel.linear.y = lastVel.linear.z = lastVel.angular.x = lastVel.angular.y = lastVel.angular.z = 0;
     nLastMotorPos[0] = nLastMotorPos[1] = nLastMotorPos[2] = 0;
+
+    sensor_msgs::BatteryState  battery_msg;
+    ros::Publisher battery_pub = n.advertise<sensor_msgs::BatteryState>("/wpr1/battery_state",10);
 
     bool bFirst = true;
     while(n.ok())
@@ -327,6 +331,9 @@ int main(int argc, char** argv)
         }
         m_wpr1.Velocity(curVel.linear.x,curVel.linear.y,curVel.angular.z);
         ///////////////////////
+        battery_msg.voltage = (float)m_wpr1.m_valData[4]*0.01;
+        battery_msg.charge = (m_wpr1.m_chIO & 0x04);
+        battery_pub.publish(battery_msg);
 
         ros::spinOnce();
         r.sleep();
