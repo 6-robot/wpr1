@@ -49,7 +49,7 @@ static float place_y_offset = 0.0f;          //机器人的横向位移补偿量
 static float place_lift_offset = 0.0f;       //手臂抬起高度的补偿量
 static float place_forward_offset = 0.0f;    //手臂抬起后，机器人向前移动的位移补偿量
 
-static int grab_gripper_pos = 25000;       //加持物品时，手爪闭合的位置
+static int grab_gripper_pos = 1000;       //加持物品时，手爪闭合的位置
 static int place_gripper_pos = 47000;     //放置物品时，手爪松开后的位置
 
 #define STEP_WAIT           0
@@ -136,8 +136,8 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "wpr1_place_action");
-    ROS_INFO("wpr1_place_action");
+    ros::init(argc, argv, "wpr1_place_box");
+    ROS_INFO("wpr1_place_box");
 
     ros::NodeHandle nh;
 
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
     mani_ctrl_msg.position[1] = -1.57;
     mani_ctrl_msg.position[2] = -0.7;
     mani_ctrl_msg.position[3] = 0;
-    mani_ctrl_msg.position[4] = 25000;
+    mani_ctrl_msg.position[4] = grab_gripper_pos;
     mani_ctrl_msg.velocity[0] = 1500;
     mani_ctrl_msg.velocity[1] = 1500;
     mani_ctrl_msg.velocity[2] = 1500;

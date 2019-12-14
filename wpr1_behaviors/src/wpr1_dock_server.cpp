@@ -299,14 +299,14 @@ int main(int argc, char** argv)
                 }
                 float fVel_Y = cDock.nDock_X * -0.0005;
                 fVel_Y = VelLimit(fVel_Y,-0.05,0.05);
-                float fVel_X = cDock.nDock_Y * 0.005;
-                fVel_X = VelLimit(fVel_X,-0.1,0.1);
+                float fVel_X = cDock.nDock_Y * 0.002;
+                fVel_X = VelLimit(fVel_X,-0.2,0.2);
                 float fVelTurn = nDock_Angle * -(3.14/180) * 0.5;
                 fVelTurn = VelLimit(fVelTurn,-0.3,0.3);
                 //ROS_WARN("[dock] lx=%.2f ly=%.2f az=%.2f",fVel_X, fVel_Y, fVelTurn);
                 VelCmd(fVel_X, fVel_Y, fVelTurn);
 
-                if (nDist < 25)
+                if (nDist < 20)
                 {
                     VelCmd(0, 0, 0);
                     nDelayCount = 0;

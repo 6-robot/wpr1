@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     ctrl_msg.position[1] = -1.57;
     ctrl_msg.position[2] = -0.7;
     ctrl_msg.position[3] = 0;
-    ctrl_msg.position[4] = 7000;
+    ctrl_msg.position[4] = 17000;
     ctrl_msg.velocity[0] = 1500;
     ctrl_msg.velocity[1] = 1500;
     ctrl_msg.velocity[2] = 1500;
@@ -80,42 +80,42 @@ int main(int argc, char** argv)
             ctrl_msg.position[1] = -1.57;
             ctrl_msg.position[2] = -0.7;
             ctrl_msg.position[3] = 0;
-            ctrl_msg.position[4] = 7000;
+            ctrl_msg.position[4] = 17000;
             break;
         case 1:
             ctrl_msg.position[0] = 0.05;
             ctrl_msg.position[1] = 0;
             ctrl_msg.position[2] = 0;
             ctrl_msg.position[3] = 0;
-            ctrl_msg.position[4] = 7000;
+            ctrl_msg.position[4] = 17000;
             break;
         case 2:
             ctrl_msg.position[0] = 0.05;
             ctrl_msg.position[1] = 0;
             ctrl_msg.position[2] = 0;
             ctrl_msg.position[3] = 0;
-            ctrl_msg.position[4] = 25000;
+            ctrl_msg.position[4] = 35000;
             break;
         case 3:
             ctrl_msg.position[0] = 0.05;
             ctrl_msg.position[1] = 0;
             ctrl_msg.position[2] = 0;
             ctrl_msg.position[3] = 0.7;
-            ctrl_msg.position[4] = 25000;
+            ctrl_msg.position[4] = 35000;
             break;
         case 4:
             ctrl_msg.position[0] = 0.05;
             ctrl_msg.position[1] = 0;
             ctrl_msg.position[2] = 0;
             ctrl_msg.position[3] = 0;
-            ctrl_msg.position[4] = 25000;
+            ctrl_msg.position[4] = 35000;
             break;
         case 5:
             ctrl_msg.position[0] = 0;
             ctrl_msg.position[1] = -1.57;
             ctrl_msg.position[2] = -0.7;
             ctrl_msg.position[3] = 0;
-            ctrl_msg.position[4] = 7000;
+            ctrl_msg.position[4] = 17000;
             break;
         }
         joint_ctrl_pub.publish(ctrl_msg);
