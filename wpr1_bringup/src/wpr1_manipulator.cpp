@@ -51,25 +51,56 @@ static CMani_driver m_mani;
 void JointCtrlCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
     int nNumJoint = msg->position.size();
-    // for(int i=0;i<nNumJoint;i++)
-    // {
-    //     ROS_INFO("[wpr1_mani_cb] %d - %s = %.2f", i, msg->name[i].c_str(),msg->position[i]);
-    // }
-    //脊柱升降
-    fJointAngle[0] = msg->position[0] * 1000;
-    nJointSpeed[0] = msg->velocity[0];
-    //手臂根关节
-    fJointAngle[3] = msg->position[1] * fAngToDeg;
-    nJointSpeed[3] = msg->velocity[1];
-    //手臂肘关节
-    fJointAngle[4] = msg->position[2] * fAngToDeg;
-    nJointSpeed[4] = msg->velocity[2];
-    //手腕关节
-    fJointAngle[5] = msg->position[3] * fAngToDeg;
-    nJointSpeed[5] = msg->velocity[3];
-    //手爪
-    fJointAngle[6] = msg->position[4];
-    nJointSpeed[6] = msg->velocity[4];
+    for(int i=0;i<nNumJoint;i++)
+    {
+        if(msg->name[i] == "base_to_torso")
+        {
+            //脊柱升降
+            fJointAngle[0] = msg->position[i] * 1000;
+            nJointSpeed[0] = msg->velocity[i];
+        }
+        if(msg->name[i] == "torso_to_upperarm")
+        {
+            //手臂根关节
+            fJointAngle[3] = msg->position[i] * fAngToDeg;
+            nJointSpeed[3] = msg->velocity[i];
+        }
+        if(msg->name[i] == "upperarm_to_forearm")
+        {
+            //手臂肘关节
+            fJointAngle[4] = msg->position[i] * fAngToDeg;
+            nJointSpeed[4] = msg->velocity[i];
+        }
+        if(msg->name[i] == "forearm_to_palm")
+        {
+            //手腕关节
+            fJointAngle[5] = msg->position[i] * fAngToDeg;
+            nJointSpeed[5] = msg->velocity[i];
+        }
+        if(msg->name[i] == "gripper")
+        {
+             //手爪
+            fJointAngle[6] = msg->position[i];
+            nJointSpeed[6] = msg->velocity[i];
+        }
+        //ROS_INFO("[wpr1_mani_cb] %d - %s = %.2f", i, msg->name[i].c_str(),msg->position[i]);
+    }
+    
+    // //脊柱升降
+    // fJointAngle[0] = msg->position[0] * 1000;
+    // nJointSpeed[0] = msg->velocity[0];
+    // //手臂根关节
+    // fJointAngle[3] = msg->position[1] * fAngToDeg;
+    // nJointSpeed[3] = msg->velocity[1];
+    // //手臂肘关节
+    // fJointAngle[4] = msg->position[2] * fAngToDeg;
+    // nJointSpeed[4] = msg->velocity[2];
+    // //手腕关节
+    // fJointAngle[5] = msg->position[3] * fAngToDeg;
+    // nJointSpeed[5] = msg->velocity[3];
+    // //手爪
+    // fJointAngle[6] = msg->position[4];
+    // nJointSpeed[6] = msg->velocity[4];
 
     m_mani.SetJoints(fJointAngle, nJointSpeed);
     //ROS_INFO("[wpr1_mani_SetJoints] %.0f %.0f %.0f %.0f %.0f", fJointAngle[0],fJointAngle[1],fJointAngle[2],fJointAngle[3],fJointAngle[4]);
@@ -87,6 +118,11 @@ int main(int argc, char** argv)
         fJointAngle[i] = 0;
         nJointSpeed[i] = 1500;
     }
+    fJointAngle[0] = 150;
+    fJointAngle[3] = -1.57 * fAngToDeg;
+    fJointAngle[4] = -0.7 * fAngToDeg;
+    fJointAngle[5] = 0 * fAngToDeg;
+    fJointAngle[6] = 25000;
 
     ros::NodeHandle n_param("~");
     std::string strSerialPort;

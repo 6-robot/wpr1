@@ -144,6 +144,10 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
     nFindIndex = msg->data.find("dock stop");
     if( nFindIndex >= 0 )
     {
+        cDock.Reset();
+        cDock.nDock_X = 0;
+        cDock.nDock_Y = CHARGE_FACE_DIST;
+        cDock.fDock_Angle = 0;
         nStep = STEP_WAIT;
         ROS_WARN("[dock_stop] ");
     }
@@ -306,7 +310,7 @@ int main(int argc, char** argv)
                 //ROS_WARN("[dock] lx=%.2f ly=%.2f az=%.2f",fVel_X, fVel_Y, fVelTurn);
                 VelCmd(fVel_X, fVel_Y, fVelTurn);
 
-                if (nDist < 20)
+                if (nDist < 23)
                 {
                     VelCmd(0, 0, 0);
                     nDelayCount = 0;

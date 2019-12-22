@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     mani_ctrl_msg.name[4] = "gripper";
     mani_ctrl_msg.position[0] = 0;
     mani_ctrl_msg.position[1] = -1.57;
-    mani_ctrl_msg.position[2] = -0.7;
+    mani_ctrl_msg.position[2] = -0.9;
     mani_ctrl_msg.position[3] = 0;
     mani_ctrl_msg.position[4] = 25000;
     mani_ctrl_msg.velocity[0] = 1500;

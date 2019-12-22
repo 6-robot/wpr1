@@ -104,9 +104,9 @@ namespace wpr1_local_planner
             costmap_2d::calculateMinAndMaxDistances(m_footprint_spec, m_robot_inscribed_radius, m_robot_circumscribed_radius); 
 
             ros::NodeHandle nh_planner("~/" + name);
-            nh_planner.param("max_vel_trans", m_max_vel_trans, 0.3);
+            nh_planner.param("max_vel_trans", m_max_vel_trans, 1.0);
             nh_planner.param("max_vel_rot", m_max_vel_rot, 0.9);
-            nh_planner.param("acc_scale_trans", m_acc_scale_trans, 0.8);
+            nh_planner.param("acc_scale_trans", m_acc_scale_trans, 1.5);
             nh_planner.param("acc_scale_rot", m_acc_scale_rot, 0.6);
             nh_planner.param("goal_dist_tolerance", m_goal_dist_tolerance, 0.2);
             nh_planner.param("goal_yaw_tolerance", m_goal_yaw_tolerance, 0.03);
@@ -437,7 +437,7 @@ namespace wpr1_local_planner
                 {
                     // 朝向差不多了,开始移动
                     cmd_vel.linear.x = target_x * m_acc_scale_trans;
-                    cmd_vel.linear.y = target_y * m_acc_scale_trans;
+                    cmd_vel.linear.y = target_y * m_acc_scale_trans * 0.5;
                     cmd_vel.angular.z = face_target * m_acc_scale_rot;
                   
                     if(cmd_vel.linear.x > 0) cmd_vel.linear.x+=0.05;

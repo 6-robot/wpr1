@@ -569,6 +569,8 @@ void CDetectDock::GenNewDockPos()
 void CDetectDock::Reset()
 {
 	bFindDock = true;
+	nDock_X = 0;
+    fDock_Angle = 0;
 }
 
 

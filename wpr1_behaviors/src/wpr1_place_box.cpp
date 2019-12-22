@@ -160,7 +160,7 @@ int main(int argc, char **argv)
     mani_ctrl_msg.name[4] = "gripper";
     mani_ctrl_msg.position[0] = 0;
     mani_ctrl_msg.position[1] = -1.57;
-    mani_ctrl_msg.position[2] = -0.7;
+    mani_ctrl_msg.position[2] = -0.9;
     mani_ctrl_msg.position[3] = 0;
     mani_ctrl_msg.position[4] = grab_gripper_pos;
     mani_ctrl_msg.velocity[0] = 1500;
@@ -239,9 +239,11 @@ int main(int argc, char **argv)
         {
             if(nTimeDelayCounter == 0)
             {
+                mani_ctrl_msg.position[0] -= 0.05;
                 result_msg.data = "release";
                 result_pub.publish(result_msg);
             }
+
             mani_ctrl_msg.position[4] = place_gripper_pos;      //释放物品
             mani_ctrl_pub.publish(mani_ctrl_msg);
             //ROS_WARN("[STEP_RELEASE] lift= %.2f  gripper= %.2f " ,mani_ctrl_msg.position[0], mani_ctrl_msg.position[4]);
@@ -338,7 +340,7 @@ int main(int argc, char **argv)
 
                 mani_ctrl_msg.position[0] = 0;
                 mani_ctrl_msg.position[1] = -1.57;
-                mani_ctrl_msg.position[2] = -0.7;
+                mani_ctrl_msg.position[2] = -0.9;
                 mani_ctrl_msg.position[3] = 0;
                 mani_ctrl_pub.publish(mani_ctrl_msg);
 
