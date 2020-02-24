@@ -11,6 +11,7 @@ public:
 	unsigned char m_chIO;
 	void Velocity(float inX, float inY, float inAngular);
 	void SetSixMotorsSpeed(int *inSpeed);
+	int arLastMotorPos[6];
 	int arMotorPos[6];
 	int arMotorCurrent[6];
 	int nParseCount;

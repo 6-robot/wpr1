@@ -41,17 +41,18 @@
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Int64.h>
 #include <tf/transform_broadcaster.h>
 
 // 抓取参数调节（单位：米）
-static float obj_x_dist = 1.1f;             //抬起手臂时，机器人和物品的距离
-static float grab_y_offset = -0.04f;        //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_y_offset = -0.02f;          //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset = 0.0f;       //脊柱高度的补偿偏移量
-static float obj_x_grab = 0.78f;             //机器人抓取物品时物品的距离
+static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
 static float grab_gripper_value = 11500;    //抓取物品时，手爪闭合后的手爪位置
 
 #define STEP_WAIT           0
+#define STEP_FIND_PLANE     1
+#define STEP_PLANE_DIST     2
+#define STEP_FIND_OBJ       3
 #define STEP_OBJ_DIST       4
 #define STEP_HAND_UP        5
 #define STEP_FORWARD        6
@@ -62,8 +63,6 @@ static float grab_gripper_value = 11500;    //抓取物品时，手爪闭合后�
 static int nStep = STEP_WAIT;
 
 static std::string pc_topic;
-static ros::Publisher box_cmd_pub;
-static std_msgs::String box_cmd_msg;
 static ros::Publisher vel_pub;
 static ros::Publisher mani_ctrl_pub;
 static sensor_msgs::JointState mani_ctrl_msg;
@@ -77,9 +76,10 @@ static std_msgs::String result_msg;
 static ros::Publisher odom_ctrl_pub;
 static std_msgs::String ctrl_msg;
 static geometry_msgs::Pose2D pose_diff;
-static geometry_msgs::Pose pose_box;
 
-static float fBackY = 0;
+static float fObjGrabX = 0;
+static float fObjGrabY = 0;
+static float fObjGrabZ = 0;
 static float fMoveTargetX = 0;
 static float fMoveTargetY = 0;
 
@@ -88,41 +88,22 @@ static int nTimeDelayCounter = 0;
 static float fTargetGrabX = 0.9;        //抓取时目标物品的x坐标
 static float fTargetGrabY = 0.0;        //抓取时目标物品的y坐标
 
-void GrabBoxCallback(const std_msgs::Int64::ConstPtr &msg)
+void GrabActionCallback(const geometry_msgs::Pose::ConstPtr& msg)
 {
-    // 盒子编号
-    int nBoxIndex = msg->data;
-    ROS_WARN("[GRAB_BOX] nBoxIndex = %d " , nBoxIndex);
-    switch(nBoxIndex)
-    {
-        case 0:
-            box_cmd_msg.data = "track box 0";
-            break;
-        case 1:
-            box_cmd_msg.data = "track box 1";
-            break;
-        default:
-            box_cmd_msg.data = "stop track";
-            break;
-    }
-    box_cmd_pub.publish(box_cmd_msg);
+    // 目标物品的坐标
+    fObjGrabX = msg->position.x;
+    fObjGrabY = msg->position.y;
+    fObjGrabZ = msg->position.z;
+    ROS_WARN("[OBJ_TO_GRAB] x = %.2f y= %.2f ,z= %.2f " ,fObjGrabX, fObjGrabY, fObjGrabZ);
+    ctrl_msg.data = "pose_diff reset";
+    odom_ctrl_pub.publish(ctrl_msg);
 
-    nStep = STEP_WAIT;
+    // ajudge the dist to obj
+    fMoveTargetX = fObjGrabX - fTargetGrabX;
+    fMoveTargetY = fObjGrabY - fTargetGrabY + grab_y_offset;
+    ROS_WARN("[MOVE_TARGET] x = %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
+    nStep = STEP_OBJ_DIST;
 }
-
-void BoxPoseCallback(const geometry_msgs::Pose::ConstPtr &msg)
-{
-    // 盒子坐标
-    pose_box = *msg;
-    fBackY = -pose_box.position.y;
-
-    if( nStep == STEP_WAIT)
-    {
-        ROS_WARN("[BoxPoseCallback] pose_box (%.2f , %.2f , %.2f)",pose_box.position.x,pose_box.position.y,pose_box.position.z);
-        nStep = STEP_OBJ_DIST;
-    }
-}
-
 
 void PoseDiffCallback(const geometry_msgs::Pose2D::ConstPtr& msg)
 {
@@ -161,20 +142,19 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "wpr1_grab_box");
-    ROS_INFO("wpr1_grab_box");
+    ros::init(argc, argv, "wpr1_grab_action");
+    ROS_WARN("wpr1_grab_action start!");
 
     ros::NodeHandle nh;
 
-    box_cmd_pub = nh.advertise<std_msgs::String>("/box/command", 10);
     vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
     mani_ctrl_pub = nh.advertise<sensor_msgs::JointState>("/wpr1/joint_ctrl", 30);
     result_pub = nh.advertise<std_msgs::String>("/wpr1/grab_result", 30);
-    ros::Subscriber sub_grab_pose = nh.subscribe("/wpr1/grab_box", 1, GrabBoxCallback);
+
+    ros::Subscriber sub_grab_pose = nh.subscribe("/wpr1/grab_action", 1, GrabActionCallback);
     ros::Subscriber sub_beh = nh.subscribe("/wpr1/behaviors", 30, BehaviorCB);
     odom_ctrl_pub = nh.advertise<std_msgs::String>("/wpr1/ctrl", 30);
     ros::Subscriber pose_diff_sub = nh.subscribe("/wpr1/pose_diff", 1, PoseDiffCallback);
-    ros::Subscriber box_pose_sub = nh.subscribe("/box/pose", 1, BoxPoseCallback);
 
     mani_ctrl_msg.name.resize(5);
     mani_ctrl_msg.position.resize(5);
@@ -203,15 +183,17 @@ int main(int argc, char **argv)
         if(nStep == STEP_OBJ_DIST)
         {
             float vx,vy;
-            vx = (pose_box.position.x - obj_x_dist)/2;
-            vy = (pose_box.position.y + grab_y_offset)/2;
+            vx = (fMoveTargetX - pose_diff.x)/2;
+            vy = (fMoveTargetY - pose_diff.y)/2;
 
             VelCmd(vx,vy,0);
-            ROS_WARN("[STEP_OBJ_DIST] pose_box (%.2f , %.2f , %.2f) v(%.2f,%.2f)",pose_box.position.x,pose_box.position.y,pose_box.position.z,vx,vy);
+            //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
 
             if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
             {
                 VelCmd(0,0,0);
+                ctrl_msg.data = "pose_diff reset";
+                odom_ctrl_pub.publish(ctrl_msg);
                 nTimeDelayCounter = 0;
                 nStep = STEP_HAND_UP;
             }
@@ -225,7 +207,7 @@ int main(int argc, char **argv)
         {
             if(nTimeDelayCounter == 0)
             {
-                float fTorsoVal = pose_box.position.z + 0.56 - 1.3 + grab_lift_offset;
+                float fTorsoVal = fObjGrabZ + 0.54 - 1.3 + grab_lift_offset;
                 if (fTorsoVal < 0)
                 {
                     fTorsoVal = 0;
@@ -249,8 +231,12 @@ int main(int argc, char **argv)
             VelCmd(0,0,0);
             if(nTimeDelayCounter > 5*30)
             {
-                ROS_WARN("[STEP_FORWARD] pose_box (%.2f , %.2f , %.2f) " ,pose_box.position.x,pose_box.position.y,pose_box.position.z);
+                fMoveTargetX = fTargetGrabX -0.60 + grab_forward_offset;
+                fMoveTargetY = 0;
+                ROS_WARN("[STEP_FORWARD] x = %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
                 nTimeDelayCounter = 0;
+                //ctrl_msg.data = "pose_diff reset";
+                //odom_ctrl_pub.publish(ctrl_msg);
                 nStep = STEP_FORWARD;
             }
         }
@@ -259,15 +245,18 @@ int main(int argc, char **argv)
         if(nStep == STEP_FORWARD)
         {
             float vx,vy;
-            vx = (pose_box.position.x - obj_x_grab)/2;
-            vy = (pose_box.position.y + grab_y_offset)/2;
+            vx = (fMoveTargetX - pose_diff.x)/2;
+            vy = (fMoveTargetY - pose_diff.y)/2;
 
             VelCmd(vx,vy,0);
-            //ROS_WARN("[STEP_FORWARD] pose_box (%.2f , %.2f , %.2f) v(%.2f,%.2f)",pose_box.position.x,pose_box.position.y,pose_box.position.z,vx,vy);
+
+            //ROS_INFO("[STEP_FORWARD] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
 
             if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
             {
                 VelCmd(0,0,0);
+                ctrl_msg.data = "pose_diff reset";
+                odom_ctrl_pub.publish(ctrl_msg);
                 nTimeDelayCounter = 0;
                 nStep = STEP_GRAB;
             }
@@ -292,9 +281,6 @@ int main(int argc, char **argv)
             VelCmd(0,0,0);
             if(nTimeDelayCounter > 3*30)
             {
-                box_cmd_msg.data = "stop track";
-                box_cmd_pub.publish(box_cmd_msg);
-
                 nTimeDelayCounter = 0;
                 ROS_WARN("[STEP_OBJ_UP]");
                 nStep = STEP_OBJ_UP;
@@ -311,16 +297,14 @@ int main(int argc, char **argv)
                 //ROS_WARN("[MANI_CTRL] lift= %.2f  gripper= %.2f " ,mani_ctrl_msg.position[0], mani_ctrl_msg.position[4]);
                 result_msg.data = "object up";
                 result_pub.publish(result_msg);
-                ctrl_msg.data = "pose_diff reset";
-                odom_ctrl_pub.publish(ctrl_msg);
             }
             nTimeDelayCounter++;
             VelCmd(0,0,0);
             mani_ctrl_pub.publish(mani_ctrl_msg);
             if(nTimeDelayCounter > 3*30)
             {
-                fMoveTargetX = -(obj_x_dist - obj_x_grab);
-                fMoveTargetY = -(fBackY - grab_y_offset);
+                fMoveTargetX = -(fObjGrabX -0.60 + grab_forward_offset);
+                fMoveTargetY = -(fObjGrabY + grab_y_offset);
                 ROS_WARN("[STEP_BACKWARD] x= %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
 
                 nTimeDelayCounter = 0;

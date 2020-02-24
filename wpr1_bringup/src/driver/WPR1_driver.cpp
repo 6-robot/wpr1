@@ -18,6 +18,7 @@ CWPR1_driver::CWPR1_driver()
 	{
 		m_nMotorToSend[i] = 0;
 		arMotorPos[i] = 0;
+		arLastMotorPos[i] = 0;
 		arMotorCurrent[i] = 0;
 	}
 	for (int i = 0; i<5; i++)
@@ -132,8 +133,18 @@ void CWPR1_driver::m_ParseFrame(unsigned char *inBuf, int inLen)
 		case 0x08:		//Motor
 			for (i=0;i<4;i++)
 			{
-				arMotorPos[i] = m_Piece2int(&(inBuf[7+i*6]));
+				int tmpPos = m_Piece2int(&(inBuf[7+i*6]));
+				if(tmpPos != 0)
+				{
+					arMotorPos[i] = tmpPos;
+				}
+				else
+				{
+					arMotorPos[i] = arLastMotorPos[i];
+				}
+				arLastMotorPos[i] = arMotorPos[i];
 				arMotorCurrent[i] = m_ShortFromChar(&(inBuf[7+i*6+4]));
+
 			}
 			//printf("M[1]= %.4d  M[2]= %.4d M[3]= %.4d\n", arMotorPos[0],arMotorPos[1],arMotorPos[2]);
 			// printf("C[1]= %.4d  C[2]= %.4d C[3]= %.4d \n", arMotorCurrent[0],arMotorCurrent[1],arMotorCurrent[2]);

@@ -236,6 +236,14 @@ target_link_libraries(wpr1_dock_server
   ${catkin_LIBRARIES}
 )
 
+add_executable(wpr1_grab_action
+  src/wpr1_grab_action.cpp
+)
+add_dependencies(wpr1_grab_action ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wpr1_grab_action
+  ${catkin_LIBRARIES}
+)
+
 add_executable(wpr1_grab_box
   src/wpr1_grab_box.cpp
 )
