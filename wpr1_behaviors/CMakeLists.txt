@@ -252,10 +252,10 @@ target_link_libraries(wpr1_grab_box
   ${catkin_LIBRARIES}
 )
 
-add_executable(wpr1_place_box
-  src/wpr1_place_box.cpp
+add_executable(wpr1_place_action
+  src/wpr1_place_action.cpp
 )
-add_dependencies(wpr1_place_box ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(wpr1_place_box
+add_dependencies(wpr1_place_action ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wpr1_place_action
   ${catkin_LIBRARIES}
 )

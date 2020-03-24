@@ -136,8 +136,8 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "wpr1_place_box");
-    ROS_INFO("wpr1_place_box");
+    ros::init(argc, argv, "wpr1_place_action");
+    ROS_INFO("wpr1_place_action");
 
     ros::NodeHandle nh;
 

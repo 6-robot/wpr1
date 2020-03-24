@@ -46,9 +46,9 @@
 
 // 抓取参数调节（单位：米）
 static float obj_x_dist = 1.1f;             //抬起手臂时，机器人和物品的距离
-static float grab_y_offset = -0.04f;        //抓取前，对准物品，机器人的横向位移偏移量
-static float grab_lift_offset = 0.0f;       //脊柱高度的补偿偏移量
-static float obj_x_grab = 0.78f;             //机器人抓取物品时物品的距离
+static float grab_y_offset = -0.05f;        //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_lift_offset = 0.10f;       //脊柱高度的补偿偏移量
+static float obj_x_grab = 0.79f;             //机器人抓取物品时物品的距离
 static float grab_gripper_value = 11500;    //抓取物品时，手爪闭合后的手爪位置
 
 #define STEP_WAIT           0
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
         {
             if(nTimeDelayCounter == 0)
             {
-                float fTorsoVal = pose_box.position.z + 0.56 - 1.3 + grab_lift_offset;
+                float fTorsoVal = pose_box.position.z + 0.52 - 1.3 + grab_lift_offset;
                 if (fTorsoVal < 0)
                 {
                     fTorsoVal = 0;

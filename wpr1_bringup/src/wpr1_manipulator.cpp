@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     joint_pos[3] = 0.0f;
     joint_pos[4] = 0.0f;
     joint_pos[5] = 0.0f;
-    joint_pos[6] = 1.00f;    //kinect_height
+    joint_pos[6] = 1.05f;    //kinect_height
     joint_pos[7] = -0.24f;    //kinect_pitch
 
     int nCount = 100;
