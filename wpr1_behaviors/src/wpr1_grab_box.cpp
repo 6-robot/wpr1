@@ -42,10 +42,11 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int64.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <tf/transform_broadcaster.h>
 
 // 抓取参数调节（单位：米）
-static float obj_x_dist = 1.1f;             //抬起手臂时，机器人和物品的距离
+static float obj_x_dist = 1.0f;             //抬起手臂时，机器人和物品的距离（从wpr1_agent传过来）
 static float grab_y_offset = -0.05f;        //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset = 0.10f;       //脊柱高度的补偿偏移量
 static float obj_x_grab = 0.79f;             //机器人抓取物品时物品的距离
@@ -87,6 +88,14 @@ static int nTimeDelayCounter = 0;
 
 static float fTargetGrabX = 0.9;        //抓取时目标物品的x坐标
 static float fTargetGrabY = 0.0;        //抓取时目标物品的y坐标
+
+
+void BoxParamCB(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{
+    if(msg->data.size() < 2)
+        return;
+    obj_x_dist = msg->data[0];       //机器人和盒子的距离（从wpr1_agent传过来）
+}
 
 void GrabBoxCallback(const std_msgs::Int64::ConstPtr &msg)
 {
@@ -174,6 +183,7 @@ int main(int argc, char **argv)
     ros::Subscriber sub_beh = nh.subscribe("/wpr1/behaviors", 30, BehaviorCB);
     odom_ctrl_pub = nh.advertise<std_msgs::String>("/wpr1/ctrl", 30);
     ros::Subscriber pose_diff_sub = nh.subscribe("/wpr1/pose_diff", 1, PoseDiffCallback);
+    ros::Subscriber param_res_sub = nh.subscribe("/box/param", 2, BoxParamCB);
     ros::Subscriber box_pose_sub = nh.subscribe("/box/pose", 1, BoxPoseCallback);
 
     mani_ctrl_msg.name.resize(5);
