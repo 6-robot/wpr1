@@ -49,7 +49,7 @@ static float place_y_offset = 0.0f;          //机器人的横向位移补偿量
 static float place_lift_offset = 0.0f;       //手臂抬起高度的补偿量
 static float place_forward_offset = 0.0f;    //手臂抬起后，机器人向前移动的位移补偿量
 
-static int grab_gripper_pos = 1000;       //加持物品时，手爪闭合的位置
+static int grab_gripper_pos = 5000;       //加持物品时，手爪闭合的位置
 static int place_gripper_pos = 47000;     //放置物品时，手爪松开后的位置
 
 #define STEP_WAIT           0
@@ -131,7 +131,19 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
         vel_cmd.angular.z = 0;
         vel_pub.publish(vel_cmd);
     }
+}
 
+void JointStatesCallback(const sensor_msgs::JointState& msg)
+{
+    if(nStep == STEP_PLACE_DIST)
+    {
+        // 还原手爪的位置值
+        float fGriperAngle = msg.position[4];
+        fGriperAngle -= 0.5;
+        fGriperAngle *= -50000/0.5;
+        grab_gripper_pos= 50000 - (int)fGriperAngle;
+        //ROS_INFO("grab_gripper_pos = %d ",grab_gripper_pos);
+    }
 }
 
 int main(int argc, char **argv)
@@ -149,6 +161,7 @@ int main(int argc, char **argv)
     ros::Subscriber sub_beh = nh.subscribe("/wpr1/behaviors", 30, BehaviorCB);
     odom_ctrl_pub = nh.advertise<std_msgs::String>("/wpr1/ctrl", 30);
     ros::Subscriber pose_diff_sub = nh.subscribe("/wpr1/pose_diff", 1, PoseDiffCallback);
+    ros::Subscriber joint_states_sub = nh.subscribe("/joint_states",1, JointStatesCallback);
 
     mani_ctrl_msg.name.resize(5);
     mani_ctrl_msg.position.resize(5);

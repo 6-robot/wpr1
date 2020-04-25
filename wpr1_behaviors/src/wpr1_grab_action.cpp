@@ -44,10 +44,10 @@
 #include <tf/transform_broadcaster.h>
 
 // 抓取参数调节（单位：米）
-static float grab_y_offset = -0.02f;          //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_y_offset = -0.02f;        //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset = 0.0f;       //脊柱高度的补偿偏移量
 static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
-static float grab_gripper_value = 11500;    //抓取物品时，手爪闭合后的手爪位置
+static float grab_gripper_value = 25000;    //抓取物品时，手爪闭合后的手爪位置
 
 #define STEP_WAIT           0
 #define STEP_FIND_PLANE     1

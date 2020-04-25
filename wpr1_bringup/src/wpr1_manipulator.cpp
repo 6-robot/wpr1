@@ -185,6 +185,14 @@ int main(int argc, char** argv)
         fTmp *= 0.01;
         joint_pos[3] = fTmp*fDegToAng*1;
 
+        //手爪
+        fTmp = 50000 - m_mani.nRecvJointPos[6];
+        if(fTmp < 0) fTmp = 0;
+        fTmp *= -0.5/50000;
+        fTmp += 0.5;
+        joint_pos[4] = fTmp;
+        joint_pos[5] = fTmp;
+
         ////////////////////////////////////////////////////////////
         // printf("[关节电机位置] ");
 		// for (int i = 0; i < 7; i++)
