@@ -49,6 +49,7 @@ static int nStep = STEP_WAIT;
 static ros::Publisher result_pub;
 static std_msgs::String result_msg;
 static int nDelayCount = 0;
+static int grab_gripper_pos = 15000;       //夹持物品时，手爪闭合的位置
 
 void BehaviorCB(const std_msgs::String::ConstPtr &msg)
 {
@@ -70,6 +71,19 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
 
 }
 
+void JointStatesCallback(const sensor_msgs::JointState& msg)
+{
+    if(nStep == STEP_HAND_UP)
+    {
+        // 还原手爪的位置值
+        float fGriperAngle = msg.position[4];
+        fGriperAngle -= 0.5;
+        fGriperAngle *= -50000/0.5;
+        grab_gripper_pos= 50000 - (int)fGriperAngle;
+        //ROS_INFO("grab_gripper_pos = %d ",grab_gripper_pos);
+    }
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "wpr1_pass_server");
@@ -78,6 +92,7 @@ int main(int argc, char** argv)
     ros::Subscriber sub_sr = n.subscribe("/wpr1/behaviors", 30, BehaviorCB);
     ros::Publisher joint_ctrl_pub = n.advertise<sensor_msgs::JointState>("wpr1/joint_ctrl", 30);
     result_pub = n.advertise<std_msgs::String>("/wpr1/pass_result", 30);
+    ros::Subscriber joint_states_sub = n.subscribe("/joint_states",1, JointStatesCallback);
 
      bool bActive = false;
     ros::NodeHandle nh_param("~");
@@ -127,7 +142,7 @@ int main(int argc, char** argv)
             ctrl_msg.position[0] = 0.15;
             ctrl_msg.position[1] = -0.52;
             ctrl_msg.position[2] = -0.52;
-            ctrl_msg.position[4] = 20000;
+            ctrl_msg.position[4] = grab_gripper_pos;
             joint_ctrl_pub.publish(ctrl_msg);
             nDelayCount ++;
             if(nDelayCount > 80)

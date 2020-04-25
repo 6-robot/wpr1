@@ -49,7 +49,7 @@ static float place_y_offset = 0.0f;          //机器人的横向位移补偿量
 static float place_lift_offset = 0.0f;       //手臂抬起高度的补偿量
 static float place_forward_offset = 0.0f;    //手臂抬起后，机器人向前移动的位移补偿量
 
-static int grab_gripper_pos = 5000;       //加持物品时，手爪闭合的位置
+static int grab_gripper_pos = 5000;       //夹持物品时，手爪闭合的位置
 static int place_gripper_pos = 47000;     //放置物品时，手爪松开后的位置
 
 #define STEP_WAIT           0
