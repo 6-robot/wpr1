@@ -263,7 +263,7 @@ int main(int argc, char **argv)
 
             nTimeDelayCounter++;
             VelCmd(0,0,0);
-            if(nTimeDelayCounter > 5*30)
+            if(nTimeDelayCounter > 3*30)
             {
                 nTimeDelayCounter = 0;
                 fMoveTargetX = -(fPlaceX - 0.60 + place_forward_offset);
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
             }
             VelCmd(vx,vy,0);
             //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
-            if(fabs(vx) < 0.01 && fabs(vy) < 0.01 && nTimeDelayCounter > 8*30)
+            if(fabs(vx) < 0.02 && fabs(vy) < 0.02 && nTimeDelayCounter > 8*30)
             {
                 VelCmd(0,0,0);
                 odom_ctrl_msg.data = "pose_diff reset";
