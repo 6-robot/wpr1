@@ -27,10 +27,6 @@
         <box size="0.76 0.5 .2"/>
       </geometry>
     </collision>
-    <inertial>
-    <mass value="10"/>
-    <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
-    </inertial>
 </link>
 
 <joint name="base_joint" type="fixed">
@@ -170,7 +166,7 @@
 <link name = "kinect2_dock">
   <visual>
    <geometry>
-    <box size=".01 .25 .07"/>
+    <!--<box size=".01 .25 .07"/>-->
     <box size="0 0 0"/>
    </geometry>
    <origin rpy = "0 0 0" xyz = "0 0 0"/>
