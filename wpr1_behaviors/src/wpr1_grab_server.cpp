@@ -931,7 +931,7 @@ int main(int argc, char **argv)
         if(nStep == STEP_FORWARD)
         {
             float vx,vy;
-            vx = 0.01;//(fMoveTargetX - pose_diff.x)/2; //前进的速度
+            vx = 0.02;//(fMoveTargetX - pose_diff.x)/2; //前进的速度
             vy = 0;//(fMoveTargetY - pose_diff.y)/2;
 
             VelCmd(vx,vy,0);
@@ -941,7 +941,7 @@ int main(int argc, char **argv)
             //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
 
             //if(fabs(vx) < 0.01 && fabs(vy) < 0.01)
-            if(nForwardCounter > 10)    //前进的计数值
+            if(nForwardCounter > (240 + grab_forward_offset*1500))    //前进的计数值
             {
                 nForwardCounter = 0;
                 VelCmd(0,0,0);
