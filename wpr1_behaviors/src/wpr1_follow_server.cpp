@@ -344,7 +344,7 @@ int main(int argc, char **argv)
     ros::Subscriber pc_sub = nh.subscribe(pc_topic, 1 , ProcCloudCB);
     ros::Subscriber scan_sub = nh.subscribe<sensor_msgs::LaserScan>("/scan",30,ScanCB);
 
-    ros::Subscriber sub_sr = nh.subscribe("/wpr1_behaviors", 30, BehaviorCB);
+    ros::Subscriber sub_sr = nh.subscribe("/wpr1/behaviors", 30, BehaviorCB);
 
     vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
     pc_pub = nh.advertise<sensor_msgs::PointCloud2>("follow_pointcloud",1);
