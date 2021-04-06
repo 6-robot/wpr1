@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     ros::NodeHandle n;
     ros::Subscriber sub_sr = n.subscribe("/xfei/iat", 10, KeywordCB);
 
-    behaviors_pub = n.advertise<std_msgs::String>("wpr1_behaviors", 30);
+    behaviors_pub = n.advertise<std_msgs::String>("wpr1/behaviors", 30);
 
     ROS_INFO("[main] wpr1_shopping");
     ros::Rate r(1);
