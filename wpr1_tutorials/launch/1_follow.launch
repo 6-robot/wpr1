@@ -13,8 +13,8 @@
       <param name="cn" type="bool" value="false"/> 
   </node>
 
-  <!-- Run wpr1_follow_client node -->
-  <node name="wpr1_follow_client" pkg="wpr1_tutorials" type="wpr1_follow_client"  output="screen"/>
+  <!-- Run wpr1_sr_follow node -->
+  <node name="wpr1_sr_follow" pkg="wpr1_tutorials" type="wpr1_sr_follow"  output="screen"/>
 
   <!-- Run sound_play -->
   <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py"/>
