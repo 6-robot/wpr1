@@ -23,9 +23,7 @@
 
 
     <!-- Map tools  -->
-    <node pkg="waterplus_map_tools" type="wp_manager" name="wp_manager" output="screen">
-        <param name="load" type="string" value="/home/robot/waypoints.xml"/> 
-    </node>
+    <node pkg="waterplus_map_tools" type="wp_manager" name="wp_manager" output="screen"/>
 
     <!-- Run xfyun IAT -->
     <node pkg="xfyun_waterplus" type="iat_node" name="xfyun_iat_node" output="screen">

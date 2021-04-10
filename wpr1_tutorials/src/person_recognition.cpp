@@ -90,6 +90,8 @@ static int nState = STATE_READY;
 static int nCountDown = 10;
 static int nTurnCount = 6;
 
+std::string strHomeDir;
+
 //框选出人脸
 cv::Mat drawFacesRGB(cv::Mat inImage) 
 {
@@ -176,7 +178,8 @@ void callbackRGB(const sensor_msgs::ImageConstPtr& msg)
     {
         if( nState == STATE_OPERATOR )
         {
-            imwrite("/home/robot/operator.jpg",cv_ptr->image);
+            std::string image_filename =  strHomeDir + "/operator.jpg";
+            imwrite(image_filename,cv_ptr->image);
             ROS_INFO("Save the image of operator!!");
             ROS_INFO("Ready to turn!");
             Speak("OK,I have memoried you.Please go to the crowd.I will find you out.");
@@ -185,7 +188,8 @@ void callbackRGB(const sensor_msgs::ImageConstPtr& msg)
         }
         if(nState == STATE_CROWD)
         {
-            imwrite("/home/robot/crowd.jpg",cv_ptr->image);
+            std::string image_filename =  strHomeDir + "/crowd.jpg";
+            imwrite(image_filename,cv_ptr->image);
             ROS_INFO("Save the image of crowd!!");
             Speak("OK,I have recognize the faces of crowd.");
             nState = STATE_REPORT;
@@ -302,6 +306,10 @@ void KeywordCB(const std_msgs::String::ConstPtr & msg)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "wpr1_person_recognition");
+
+    char const* home = getenv("HOME");
+    strHomeDir = home;
+    
     ros::NodeHandle nh_param("~");
     //nh_param.param<std::string>("rgb_topic", rgb_topic, "/camera/image_raw");
     nh_param.param<std::string>("rgb_topic", rgb_topic, "/kinect2/hd/image_color");

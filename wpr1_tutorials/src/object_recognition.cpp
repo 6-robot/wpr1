@@ -112,6 +112,8 @@ static std::vector<Rect> arObj;
 cv::Mat rgb_image;
 int img_counter = 0;
 
+std::string strHomeDir;
+
 typedef struct stBoxMarker
 {
     float xMax;
@@ -397,8 +399,9 @@ void ProcColorCB(const sensor_msgs::ImageConstPtr& msg)
     }
 
     image_pub.publish(cv_ptr->toImageMsg());
- 
-    imwrite("/home/robot/objects.jpg",cv_ptr->image);
+    
+    std::string image_filename =  strHomeDir + "/objects.jpg";
+    imwrite(image_filename,cv_ptr->image);
     ROS_INFO("Save the image of object recognition!!");
     Speak("OK,I have recognize the objects.");
     nState = STATE_DONE;
@@ -523,6 +526,9 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "object_recognition");
     ROS_INFO("object_recognition");
     tf_listener = new tf::TransformListener(); 
+
+    char const* home = getenv("HOME");
+    strHomeDir = home;
 
     ros::NodeHandle n;
     ros::Subscriber pc_sub = n.subscribe("/kinect2/qhd/points", 1 , ProcCloudCB);
