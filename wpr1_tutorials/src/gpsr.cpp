@@ -242,7 +242,7 @@ void KeywordCB(const std_msgs::String::ConstPtr & msg)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "wpr1_gpsr");
+    ros::init(argc, argv, "gpsr");
     Init_keywords();
     action_manager.Init();
 

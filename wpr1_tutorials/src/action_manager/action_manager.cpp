@@ -68,6 +68,7 @@ CActionManager::~CActionManager()
 
 void CActionManager::Init()
 {
+    ros::NodeHandle n;
     cliGetWPName = n.serviceClient<waterplus_map_tools::GetWaypointByName>("/waterplus/get_waypoint_name");
     spk_pub = n.advertise<std_msgs::String>("/xfyun/tts", 20);
     vel_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel", 10);

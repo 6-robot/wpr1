@@ -47,7 +47,6 @@ public:
 	CActionManager();
 	~CActionManager();
 
-    ros::NodeHandle n;
 	ros::Subscriber grab_result_sub;
     ros::Subscriber pass_result_sub;
     ros::Subscriber dock_result_sub;
