@@ -9,6 +9,7 @@ class TeleopJoy
 {
 public:
   TeleopJoy();
+  bool bStart;
   float lx;
   float ry;
   float ly;
@@ -18,6 +19,7 @@ public:
   ros::Time current_time;
   ros::Time last_time;
   ros::Publisher velcmd_pub;
+  void SendVelcmd();
 private:
   void callBack(const sensor_msgs::Joy::ConstPtr& joy);
 };
@@ -26,6 +28,7 @@ TeleopJoy::TeleopJoy()
 {
   lx = 0;
   ry = 0;
+  bStart = false;
   velcmd_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel",10);
   sub = n.subscribe<sensor_msgs::Joy>("joy",10,&TeleopJoy::callBack,this);
   current_time = ros::Time::now();
@@ -45,6 +48,14 @@ void TeleopJoy::callBack(const sensor_msgs::Joy::ConstPtr& joy)
   ly = joy->axes[0];
   ry = joy->axes[3];
 
+  bStart = true;
+}
+
+
+void TeleopJoy::SendVelcmd()
+{
+  if(bStart == false)
+    return;
   geometry_msgs::Twist vel_cmd;
   vel_cmd.linear.x = (float)lx*kx;
   vel_cmd.linear.y = ly*ky;
@@ -53,7 +64,6 @@ void TeleopJoy::callBack(const sensor_msgs::Joy::ConstPtr& joy)
   vel_cmd.angular.y = 0;
   vel_cmd.angular.z = (float)ry*kz;
   velcmd_pub.publish(vel_cmd);
-  
 }
 
 int main(int argc, char** argv)
@@ -62,7 +72,13 @@ int main(int argc, char** argv)
 
   TeleopJoy cTeleopJoy;
 
-  ros::spin();
+  ros::Rate r(30);
+  while(ros::ok())
+  {
+    cTeleopJoy.SendVelcmd();
+    ros::spinOnce();
+    r.sleep();
+  }
 
   return 0;
 }
