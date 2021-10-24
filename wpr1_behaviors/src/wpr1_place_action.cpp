@@ -289,12 +289,15 @@ int main(int argc, char **argv)
             {
                 vy = (fMoveTargetY - pose_diff.y)/2;
                 mani_ctrl_msg.position[0] = 0.0;
+                mani_ctrl_msg.position[1] = -1.57;
+                mani_ctrl_msg.position[2] = -0.9;
+                mani_ctrl_msg.position[3] = 0;
                 mani_ctrl_pub.publish(mani_ctrl_msg);
                 nTimeDelayCounter ++;
             }
             VelCmd(vx,vy,0);
             //ROS_INFO("[MOVE] T(%.2f %.2f)  od(%.2f , %.2f) v(%.2f,%.2f)" ,fMoveTargetX, fMoveTargetY, pose_diff.x ,pose_diff.y,vx,vy);
-            if(fabs(vx) < 0.02 && fabs(vy) < 0.02 && nTimeDelayCounter > 8*30)
+            if(fabs(vx) < 0.02 && fabs(vy) < 0.02 && nTimeDelayCounter > 4*30)
             {
                 VelCmd(0,0,0);
                 odom_ctrl_msg.data = "pose_diff reset";
