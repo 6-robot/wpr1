@@ -65,7 +65,6 @@
 #include <std_msgs/String.h>
 #include <sound_play/SoundRequest.h>
 #include <geometry_msgs/Pose2D.h>
-#include "highgui.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

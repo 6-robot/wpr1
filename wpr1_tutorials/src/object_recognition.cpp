@@ -62,7 +62,6 @@
 #include <visualization_msgs/Marker.h>
 #include <sound_play/SoundRequest.h>
 #include <std_msgs/String.h>
-#include "highgui.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
