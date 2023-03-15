@@ -105,7 +105,7 @@
   <arg name="model" default="$(find wpr1_bringup)/urdf/wpr1.urdf"/>
   <arg name="gui" default="true" />
   <arg name="rvizconfig" default="$(find wpr1_behaviors)/rviz/obj_detect.rviz" />
-  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
   <param name="use_gui" value="$(arg gui)"/>
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
